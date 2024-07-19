@@ -6,7 +6,7 @@ export async function registerUser(userData: User): Promise<void> {
   await saveUser(userData);
 }
 
-export async function getUserData(userId: string): Promise<User> {
+export async function getUserData(userId: number): Promise<User> {
   // Получение данных юзера
   const user = await fetchUser(userId);
   return user;

@@ -1,6 +1,6 @@
 import type { User } from './model';
 
-export async function fetchUser(userId: string): Promise<User> {
+export async function fetchUser(userId: number): Promise<User> {
   // Placeholder запрос к API
   return new Promise((resolve) => {
     setTimeout(() => {
