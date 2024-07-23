@@ -3,13 +3,7 @@ import { useConnectWallet } from '@web3-onboard/react';
 import Button from '@/shared/ui/Button/Button';
 
 const ConnectWalletButton: React.FC = () => {
-    const [
-        {
-            wallet,
-            connecting,
-        },
-        connect,
-    ] = useConnectWallet();
+    const [{ wallet, connecting }, connect] = useConnectWallet();
 
     const handleConnectWallet = async () => {
         try {
