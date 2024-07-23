@@ -4,7 +4,7 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install
 COPY . .
-ENV PORT=3000
+ENV PORT=3001
 ENV NODE_ENV=production
-EXPOSE 3000
-CMD ["pnpm", "start"]
+EXPOSE 3001
+CMD ["pnpm", "run", "dev"]

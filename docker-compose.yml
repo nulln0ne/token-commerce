@@ -1,7 +1,7 @@
 services:
-  app:
+  backend:
     build:
-      context: ..
+      context: ./backend
       dockerfile: docker/Dockerfile
     container_name: nest_app
     ports:
@@ -15,8 +15,11 @@ services:
     depends_on:
       - db
     volumes:
-      - ..:/app
+      - ./backend:/app
     command: ["pnpm", "run", "start:dev"]
+    profiles:
+      - backend
+      - full
 
   db:
     image: postgres:16
@@ -29,6 +32,25 @@ services:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    profiles:
+      - backend
+      - full
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: docker/Dockerfile
+    container_name: react_frontend
+    ports:
+      - '3001:3001'
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./frontend:/app
+    command: ["pnpm", "run", "dev"]
+    profiles:
+      - frontend
+      - full
 
 volumes:
   postgres_data:
