@@ -1,32 +1,33 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserRepositoryModule } from '@infrastructure/repository/user.repository';
-import { UserController } from '@application/controllers/user.controller';
-import { UserService } from '@domain/services/user.service';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module';
+import { UserModule } from './user/user.module';
+import { PostgreModule } from './shared/postgre.module';
+import { RedisModule } from './shared/redis/redis.module';
+import { LoggingInterceptor } from './shared/logging.interceptor';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { AllExceptionsFilter } from './shared/http-exception.filter';
 
 @Module({
     imports: [
         ConfigModule.forRoot({
             isGlobal: true,
+            envFilePath: '/home/uladzislau/code/token-commerce/backend/src/.env',
         }),
-        TypeOrmModule.forRootAsync({
-            imports: [ConfigModule],
-            useFactory: (configService: ConfigService) => ({
-                type: 'postgres',
-                host: configService.get('DATABASE_HOST'),
-                port: parseInt(configService.get('DATABASE_PORT'), 10),
-                username: configService.get('DATABASE_USERNAME'),
-                password: configService.get('DATABASE_PASSWORD'),
-                database: configService.get('DATABASE_NAME'),
-                entities: [__dirname + '/**/*.entity{.ts,.js}'],
-                synchronize: true,
-            }),
-            inject: [ConfigService],
-        }),
-        UserRepositoryModule,
+        PostgreModule,
+        RedisModule,
+        UserModule,
+        AuthModule,
     ],
-    controllers: [UserController],
-    providers: [UserService],
+    providers: [
+        {
+            provide: APP_INTERCEPTOR,
+            useClass: LoggingInterceptor,
+        },
+        {
+            provide: APP_FILTER,
+            useClass: AllExceptionsFilter,
+        },
+    ],
 })
 export class AppModule {}
