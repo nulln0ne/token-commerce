@@ -1,7 +1,6 @@
 import { init } from '@web3-onboard/react';
 import injectedModule from '@web3-onboard/injected-wallets';
 import metamaskSDK from '@web3-onboard/metamask';
-import okxWallet from '@web3-onboard/okx';
 
 // const INFURA_KEY = '1750a724e1f7452d8c6f90b81fdee533'
 
@@ -21,10 +20,8 @@ const metamaskSDKWallet = metamaskSDK({
     },
 });
 
-const okx = okxWallet();
-
 const chains = [ethereumSepolia];
-const wallets = [injectedModule(), metamaskSDKWallet, okx];
+const wallets = [injectedModule(), metamaskSDKWallet];
 
 const web3Onboard = init({
     wallets,
