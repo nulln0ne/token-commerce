@@ -12,14 +12,7 @@ export class AuthController {
 
     @Post('login')
     async auth(@Body() dto: CreateUserDto) {
-        console.log(dto);
-        let user = await this.userService.findOneByWalletAddress(dto.walletAddress);
-
-        if (!user) {
-            user = await this.userService.createUser(dto);
-        }
-
-        return this.authService.login(user.id);
+        return this.userService.createUser(dto);
     }
 
     @Post('refresh')
