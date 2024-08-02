@@ -10,6 +10,8 @@ import { User } from 'src/user/domain/user.entity';
 export class AuthService {
     private readonly accessTokenTTL: string;
     private readonly refreshTokenTTL: string;
+    private readonly accessSecret: string;
+    private readonly refreshSecret: string;
 
     constructor(
         private readonly jwtService: JwtService,
@@ -19,12 +21,20 @@ export class AuthService {
     ) {
         this.accessTokenTTL = this.configService.get<string>('JWT_ACCESS_EXPIRATION_TIME');
         this.refreshTokenTTL = this.configService.get<string>('JWT_REFRESH_EXPIRATION_TIME');
+        this.accessSecret = this.configService.get<string>('JWT_ACCESS_SECRET');
+        this.refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET');
     }
 
     async login(userId: string) {
         const payload = { sub: userId };
-        const accessToken = this.jwtService.sign(payload, { expiresIn: this.accessTokenTTL });
-        const refreshToken = this.jwtService.sign(payload, { expiresIn: this.refreshTokenTTL });
+        const accessToken = this.jwtService.sign(payload, {
+            expiresIn: this.accessTokenTTL,
+            secret: this.accessSecret,
+        });
+        const refreshToken = this.jwtService.sign(payload, {
+            expiresIn: this.refreshTokenTTL,
+            secret: this.refreshSecret,
+        });
         await this.redisRepository.saveRefreshToken(userId, refreshToken, Number(this.refreshTokenTTL));
         return { accessToken, refreshToken };
     }
@@ -36,9 +46,16 @@ export class AuthService {
         }
 
         const payload = { sub: userId };
-        const newAccessToken = this.jwtService.sign(payload, { expiresIn: this.accessTokenTTL });
-        const newRefreshToken = this.jwtService.sign(payload, { expiresIn: this.refreshTokenTTL });
+        const newAccessToken = this.jwtService.sign(payload, {
+            expiresIn: this.accessTokenTTL,
+            secret: this.accessSecret,
+        });
+        const newRefreshToken = this.jwtService.sign(payload, {
+            expiresIn: this.refreshTokenTTL,
+            secret: this.refreshSecret,
+        });
         await this.redisRepository.saveRefreshToken(userId, newRefreshToken, Number(this.refreshTokenTTL));
+        await this.redisRepository.saveAccessToken(userId, newAccessToken, Number(this.accessTokenTTL));
         return { accessToken: newAccessToken, refreshToken: newRefreshToken };
     }
 
@@ -46,9 +63,13 @@ export class AuthService {
         await this.redisRepository.deleteRefreshToken(userId);
     }
 
-    async createUser(dto: CreateUserDto): Promise<User> {
-        const user = new User();
-        user.walletAddress = dto.walletAddress;
-        return this.authRepository.saveUser(user);
+    async createUser(dto: CreateUserDto): Promise<{ accessToken: string; refreshToken: string }> {
+        let user = await this.authRepository.findOneByWalletAddress(dto.walletAddress);
+        if (!user) {
+            user = new User();
+            user.walletAddress = dto.walletAddress;
+            user = await this.authRepository.saveUser(user);
+        }
+        return this.login(user.id);
     }
 }
