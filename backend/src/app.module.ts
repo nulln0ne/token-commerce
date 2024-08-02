@@ -31,6 +31,11 @@ import { RedisConfig } from './config/redis.config';
             inject: [JwtConfig],
             useFactory: (jwtConfig: JwtConfig) => jwtConfig.getJwtAccessConfig(),
         }),
+        JwtModule.registerAsync({
+            imports: [ConfigModule],
+            inject: [JwtConfig],
+            useFactory: (jwtConfig: JwtConfig) => jwtConfig.getRefreshJwtConfig(),
+        }),
         UserModule,
         AuthModule,
     ],
