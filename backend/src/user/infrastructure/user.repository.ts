@@ -3,10 +3,13 @@ import { User } from '../domain/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 
 export class UserRepository {
+    protected readonly userRepository: Repository<User>;
     constructor(
         @InjectRepository(User)
-        private readonly userRepository: Repository<User>,
-    ) {}
+        userRepository: Repository<User>,
+    ) {
+        this.userRepository = userRepository;
+    }
     async findOneByWalletAddress(walletAddress: string): Promise<User | null> {
         console.log('Repository searching for walletAddress:', walletAddress);
         return this.userRepository.findOne({ where: { walletAddress: walletAddress.toLowerCase() } });
@@ -18,9 +21,5 @@ export class UserRepository {
 
     async findOneById(id: string): Promise<User | null> {
         return this.userRepository.findOne({ where: { id: id.toLowerCase() } });
-    }
-
-    async saveUser(user: User): Promise<User> {
-        return this.userRepository.save(user);
     }
 }

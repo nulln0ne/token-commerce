@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UserService } from 'src/user/application/user.service';
+import { AuthRepository } from '../infrastructure/auth.repository';
 import { RedisRepository } from '../infrastructure/redis.repository';
 import { ConfigService } from '@nestjs/config';
+import { CreateUserDto } from 'src/user/application/create-user.dto';
+import { User } from 'src/user/domain/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -10,10 +12,10 @@ export class AuthService {
     private readonly refreshTokenTTL: string;
 
     constructor(
-        private readonly userService: UserService,
         private readonly jwtService: JwtService,
         private readonly redisRepository: RedisRepository,
         private readonly configService: ConfigService,
+        private readonly authRepository: AuthRepository,
     ) {
         this.accessTokenTTL = this.configService.get<string>('JWT_ACCESS_EXPIRATION_TIME');
         this.refreshTokenTTL = this.configService.get<string>('JWT_REFRESH_EXPIRATION_TIME');
@@ -42,5 +44,11 @@ export class AuthService {
 
     async logout(userId: string) {
         await this.redisRepository.deleteRefreshToken(userId);
+    }
+
+    async createUser(dto: CreateUserDto): Promise<User> {
+        const user = new User();
+        user.walletAddress = dto.walletAddress;
+        return this.authRepository.saveUser(user);
     }
 }
