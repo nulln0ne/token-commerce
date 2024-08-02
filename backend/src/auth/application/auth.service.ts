@@ -72,4 +72,12 @@ export class AuthService {
         }
         return this.login(user.id);
     }
+
+    async verifyToken(token: string): Promise<any> {
+        try {
+            return this.jwtService.verify(token, { secret: this.accessSecret });
+        } catch (e) {
+            throw new Error('Invalid token');
+        }
+    }
 }
