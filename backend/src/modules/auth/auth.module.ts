@@ -20,7 +20,7 @@ import { ErrorConfigModule } from 'src/config/error/error.module';
         TypeOrmModule.forFeature([User]),
         RedisConfigModule,
         JwtConfigModule,
-        ErrorConfigModule
+        ErrorConfigModule,
     ],
     controllers: [AuthController],
     providers: [AuthService, JwtService, RedisRepository, AuthRepository],

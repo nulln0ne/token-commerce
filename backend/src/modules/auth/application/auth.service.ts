@@ -4,7 +4,7 @@ import { IErrorConfig } from 'src/config/interfaces/error.config.interface';
 import { RedisRepository } from '../infrastructure/redis.repository';
 import { AuthRepository } from '../infrastructure/auth.repository';
 import { User } from 'src/modules/user/domain/user.entity';
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, ConflictException, InternalServerErrorException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
@@ -67,11 +67,18 @@ export class AuthService {
 
     async createUser(dto: CreateUserDto): Promise<{ accessToken: string; refreshToken: string }> {
         let user = await this.authRepository.findOneByWalletAddress(dto.walletAddress);
-        if (!user) {
+        if (user) {
+            throw new ConflictException(this.errorConfig.USER_ALREADY_EXISTS);
+        }
+
+        try {
             user = new User();
             user.walletAddress = dto.walletAddress;
             user = await this.authRepository.saveUser(user);
+        } catch (error) {
+            throw new InternalServerErrorException(this.errorConfig.DATABASE_CONNECTION_ERROR);
         }
+
         return this.login(user.id);
     }
 

@@ -1,4 +1,11 @@
-import { Injectable, CanActivate, ExecutionContext, UnauthorizedException, Inject } from '@nestjs/common';
+import {
+    Injectable,
+    CanActivate,
+    ExecutionContext,
+    UnauthorizedException,
+    Inject,
+    ForbiddenException,
+} from '@nestjs/common';
 import { IErrorConfig } from 'src/config/interfaces/error.config.interface';
 import { AuthService } from './auth.service';
 import { Request } from 'express';
@@ -28,7 +35,10 @@ export class JwtAccessGuard implements CanActivate {
             request['user'] = decoded;
             return true;
         } catch (err) {
-            throw new UnauthorizedException(this.errorConfig.INVALID_ACCESS_TOKEN);
+            if (err.name === 'TokenExpiredError') {
+                throw new ForbiddenException(this.errorConfig.TOKEN_EXPIRED);
+            }
+            throw new UnauthorizedException(this.errorConfig.INVALID_CREDENTIALS);
         }
     }
 }
