@@ -6,6 +6,7 @@ import { AuthRepository } from '../infrastructure/auth.repository';
 import { User } from 'src/modules/user/domain/user.entity';
 import { Injectable, Inject, ConflictException, InternalServerErrorException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { JwtAccessToken, JwtRefreshToken } from '../domain/jwt.entity';
 
 @Injectable()
 export class AuthService {
@@ -27,38 +28,69 @@ export class AuthService {
         this.refreshSecret = jwtConfig.refreshSecret;
     }
 
-    async login(userId: string) {
+    private createJwtAccessToken(userId: string): JwtAccessToken {
         const payload = { sub: userId };
         const accessToken = this.jwtService.sign(payload, {
             expiresIn: this.accessTokenTTL,
             secret: this.accessSecret,
         });
+
+        return {
+            userId,
+            accessToken,
+            ttl: this.accessTokenTTL,
+            jwtSecret: this.accessSecret,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        };
+    }
+
+    private createJwtRefreshToken(userId: string): JwtRefreshToken {
+        const payload = { sub: userId };
         const refreshToken = this.jwtService.sign(payload, {
             expiresIn: this.refreshTokenTTL,
             secret: this.refreshSecret,
         });
-        await this.redisRepository.saveRefreshToken(userId, refreshToken, this.refreshTokenTTL);
-        return { accessToken, refreshToken };
+
+        return {
+            userId,
+            refreshToken,
+            ttl: this.refreshTokenTTL,
+            jwtSecret: this.refreshSecret,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        };
+    }
+
+    async login(userId: string) {
+        const jwtAccessToken = this.createJwtAccessToken(userId);
+        const jwtRefreshToken = this.createJwtRefreshToken(userId);
+
+        await this.redisRepository.saveAccessToken(jwtAccessToken);
+        await this.redisRepository.saveRefreshToken(jwtRefreshToken);
+
+        return {
+            accessToken: jwtAccessToken.accessToken,
+            refreshToken: jwtRefreshToken.refreshToken,
+        };
     }
 
     async refreshTokens(userId: string, refreshToken: string) {
         const storedRefreshToken = await this.redisRepository.getRefreshToken(userId);
-        if (storedRefreshToken !== refreshToken) {
+        if (!storedRefreshToken || storedRefreshToken.refreshToken !== refreshToken) {
             throw new Error(this.errorConfig.INVALID_REFRESH_TOKEN);
         }
 
-        const payload = { sub: userId };
-        const newAccessToken = this.jwtService.sign(payload, {
-            expiresIn: this.accessTokenTTL,
-            secret: this.accessSecret,
-        });
-        const newRefreshToken = this.jwtService.sign(payload, {
-            expiresIn: this.refreshTokenTTL,
-            secret: this.refreshSecret,
-        });
-        await this.redisRepository.saveRefreshToken(userId, newRefreshToken, this.refreshTokenTTL);
-        await this.redisRepository.saveAccessToken(userId, newAccessToken, this.accessTokenTTL);
-        return { accessToken: newAccessToken, refreshToken: newRefreshToken };
+        const jwtAccessToken = this.createJwtAccessToken(userId);
+        const jwtRefreshToken = this.createJwtRefreshToken(userId);
+
+        await this.redisRepository.saveAccessToken(jwtAccessToken);
+        await this.redisRepository.saveRefreshToken(jwtRefreshToken);
+
+        return {
+            accessToken: jwtAccessToken.accessToken,
+            refreshToken: jwtRefreshToken.refreshToken,
+        };
     }
 
     async logout(userId: string) {

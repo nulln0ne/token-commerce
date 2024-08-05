@@ -38,7 +38,7 @@ export class JwtAccessGuard implements CanActivate {
             if (err.name === 'TokenExpiredError') {
                 throw new ForbiddenException(this.errorConfig.TOKEN_EXPIRED);
             }
-            throw new UnauthorizedException(this.errorConfig.INVALID_CREDENTIALS);
+            throw new UnauthorizedException(this.errorConfig.INVALID_ACCESS_TOKEN);
         }
     }
 }
