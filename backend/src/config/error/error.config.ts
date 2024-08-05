@@ -12,11 +12,13 @@ export default registerAs(
         FAILED_TO_RETRIEVE_ACCESS_TOKEN: 'Failed to retrieve access token',
         FAILED_TO_RETRIEVE_REFRESH_TOKEN: 'Failed to retrieve refresh token',
         FAILED_TO_DETELE_ACCESS_TOKEN: 'Failed to delete access token',
-        FAILED_TO_DELETE_REFRESH_TOKEN: 'Failed to delete refresh token',
+        FAILED_TO_DELETE_REFRESH_TOKEN: 'Failed to delete refresh token'
+        FAILED_TO_VERIFY_ACCESS_TOKEN: 'Failed to verify access token',,
+        TOKEN_EXPIRED: 'Token has expired',
+
         USER_ALREADY_EXISTS: 'User already exists',
         DATABASE_CONNECTION_ERROR: 'Failed to connect to the database',
         REDIS_CONNECTION_ERROR: 'Failed to connect to Redis',
         INVALID_CREDENTIALS: 'Invalid credentials provided',
-        TOKEN_EXPIRED: 'Token has expired',
     }),
 );

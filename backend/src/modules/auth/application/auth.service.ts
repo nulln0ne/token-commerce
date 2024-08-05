@@ -4,7 +4,13 @@ import { IErrorConfig } from 'src/config/interfaces/error.config.interface';
 import { RedisRepository } from '../infrastructure/redis.repository';
 import { AuthRepository } from '../infrastructure/auth.repository';
 import { User } from 'src/modules/user/domain/user.entity';
-import { Injectable, Inject, ConflictException, InternalServerErrorException } from '@nestjs/common';
+import {
+    Injectable,
+    Inject,
+    ConflictException,
+    InternalServerErrorException,
+    UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { JwtAccessToken, JwtRefreshToken } from '../domain/jwt.entity';
 
@@ -115,6 +121,16 @@ export class AuthService {
     }
 
     async verifyToken(token: string): Promise<any> {
-        return this.jwtService.verifyAsync(token, { secret: this.accessSecret });
+        try {
+            return await this.jwtService.verifyAsync(token, { secret: this.accessSecret });
+        } catch (error) {
+            if (error.name === 'TokenExpiredError') {
+                throw new UnauthorizedException(this.errorConfig.TOKEN_EXPIRED);
+            } else if (error.name === 'JsonWebTokenError') {
+                throw new UnauthorizedException(this.errorConfig.INVALID_ACCESS_TOKEN);
+            } else {
+                throw new UnauthorizedException(this.errorConfig.FAILED_TO_VERIFY_ACCESS_TOKEN);
+            }
+        }
     }
 }
