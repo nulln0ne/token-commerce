@@ -1,28 +1,30 @@
-import { Injectable } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { AuthRepository } from '../infrastructure/auth.repository';
+import { IJwtConfig } from '../../../config/interfaces/jwt.config.interface';
+import { CreateUserDto } from 'src/modules/user/application/create-user.dto';
+import { IErrorConfig } from 'src/config/interfaces/error.config.interface';
 import { RedisRepository } from '../infrastructure/redis.repository';
-import { ConfigService } from '@nestjs/config';
-import { CreateUserDto } from 'src/user/application/create-user.dto';
-import { User } from 'src/user/domain/user.entity';
+import { AuthRepository } from '../infrastructure/auth.repository';
+import { User } from 'src/modules/user/domain/user.entity';
+import { Injectable, Inject } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-    private readonly accessTokenTTL: string;
-    private readonly refreshTokenTTL: string;
+    private readonly accessTokenTTL: number;
+    private readonly refreshTokenTTL: number;
     private readonly accessSecret: string;
     private readonly refreshSecret: string;
 
     constructor(
         private readonly jwtService: JwtService,
         private readonly redisRepository: RedisRepository,
-        private readonly configService: ConfigService,
         private readonly authRepository: AuthRepository,
+        @Inject('JWT_CONFIG') jwtConfig: IJwtConfig,
+        @Inject('ERROR_CONFIG') private readonly errorConfig: IErrorConfig,
     ) {
-        this.accessTokenTTL = this.configService.get<string>('JWT_ACCESS_EXPIRATION_TIME');
-        this.refreshTokenTTL = this.configService.get<string>('JWT_REFRESH_EXPIRATION_TIME');
-        this.accessSecret = this.configService.get<string>('JWT_ACCESS_SECRET');
-        this.refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET');
+        this.accessTokenTTL = parseInt(jwtConfig.accessExpirationTime, 10);
+        this.refreshTokenTTL = parseInt(jwtConfig.refreshExpirationTime, 10);
+        this.accessSecret = jwtConfig.accessSecret;
+        this.refreshSecret = jwtConfig.refreshSecret;
     }
 
     async login(userId: string) {
@@ -35,14 +37,14 @@ export class AuthService {
             expiresIn: this.refreshTokenTTL,
             secret: this.refreshSecret,
         });
-        await this.redisRepository.saveRefreshToken(userId, refreshToken, Number(this.refreshTokenTTL));
+        await this.redisRepository.saveRefreshToken(userId, refreshToken, this.refreshTokenTTL);
         return { accessToken, refreshToken };
     }
 
     async refreshTokens(userId: string, refreshToken: string) {
         const storedRefreshToken = await this.redisRepository.getRefreshToken(userId);
         if (storedRefreshToken !== refreshToken) {
-            throw new Error('Invalid refresh token');
+            throw new Error(this.errorConfig.INVALID_REFRESH_TOKEN);
         }
 
         const payload = { sub: userId };
@@ -54,8 +56,8 @@ export class AuthService {
             expiresIn: this.refreshTokenTTL,
             secret: this.refreshSecret,
         });
-        await this.redisRepository.saveRefreshToken(userId, newRefreshToken, Number(this.refreshTokenTTL));
-        await this.redisRepository.saveAccessToken(userId, newAccessToken, Number(this.accessTokenTTL));
+        await this.redisRepository.saveRefreshToken(userId, newRefreshToken, this.refreshTokenTTL);
+        await this.redisRepository.saveAccessToken(userId, newAccessToken, this.accessTokenTTL);
         return { accessToken: newAccessToken, refreshToken: newRefreshToken };
     }
 
@@ -74,8 +76,6 @@ export class AuthService {
     }
 
     async verifyToken(token: string): Promise<any> {
-        console.log(token);
-        console.log(this.accessSecret);
-        this.jwtService.verifyAsync(token, { secret: this.accessSecret });
+        return this.jwtService.verifyAsync(token, { secret: this.accessSecret });
     }
 }

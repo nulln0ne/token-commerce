@@ -1,10 +1,18 @@
+import { ConfigModule as NestConfigModule } from '@nestjs/config';
+import { TypeOrmConfigModule } from './database/typeorm.module';
+import { RedisConfigModule } from './redis/redis.module';
+import { JwtConfigModule } from './jwt/jwt.module';
 import { Module } from '@nestjs/common';
-import { DatabaseConfig } from './db.config';
-import { JwtConfig } from './jwt.config';
-import { RedisConfig } from './redis.config';
 
 @Module({
-    providers: [DatabaseConfig, JwtConfig, RedisConfig],
-    exports: [DatabaseConfig, JwtConfig, RedisConfig],
+    imports: [
+        NestConfigModule.forRoot({
+            isGlobal: true,
+            envFilePath: '.env',
+        }),
+        TypeOrmConfigModule,
+        RedisConfigModule,
+        JwtConfigModule,
+    ],
 })
 export class ConfigModule {}

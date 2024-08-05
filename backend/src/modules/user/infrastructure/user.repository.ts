@@ -1,6 +1,6 @@
-import { Repository } from 'typeorm';
-import { User } from '../domain/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { User } from '../domain/user.entity';
+import { Repository } from 'typeorm';
 
 export class UserRepository {
     protected readonly userRepository: Repository<User>;
@@ -10,13 +10,14 @@ export class UserRepository {
     ) {
         this.userRepository = userRepository;
     }
-    async findOneByWalletAddress(walletAddress: string): Promise<User | null> {
-        console.log('Repository searching for walletAddress:', walletAddress);
-        return this.userRepository.findOne({ where: { walletAddress: walletAddress.toLowerCase() } });
-    }
 
     async getAll(): Promise<User[]> {
         return this.userRepository.find();
+    }
+
+    async findOneByWalletAddress(walletAddress: string): Promise<User | null> {
+        console.log('Repository searching for walletAddress:', walletAddress);
+        return this.userRepository.findOne({ where: { walletAddress: walletAddress.toLowerCase() } });
     }
 
     async findOneById(id: string): Promise<User | null> {

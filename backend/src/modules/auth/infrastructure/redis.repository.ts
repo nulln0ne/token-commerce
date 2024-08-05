@@ -1,12 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import Redis from 'ioredis';
-import { RedisConfig } from 'src/config/redis.config';
 
 @Injectable()
 export class RedisRepository {
     private redisClient: Redis;
-    constructor(private redisConfig: RedisConfig) {
-        this.redisClient = redisConfig.createRedisClient();
+
+    constructor(@Inject('REDIS_CLIENT') redisClient: Redis) {
+        this.redisClient = redisClient;
     }
 
     async saveRefreshToken(userId: string, refreshToken: string, ttl: number): Promise<void> {
