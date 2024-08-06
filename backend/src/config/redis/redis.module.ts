@@ -9,10 +9,7 @@ import { IRedisConfig } from '../interfaces/redis.config.interface';
             provide: 'REDIS_CLIENT',
             useFactory: (configService: ConfigService): Redis => {
                 const config = configService.get<IRedisConfig>('redis');
-                console.log('Redis Configuration:', config); // Debugging line
-                if (!config) {
-                    throw new Error('Redis configuration is not defined');
-                }
+                console.log('Redis Configuration:', config);
                 return new Redis({
                     host: config.host,
                     port: config.port,
