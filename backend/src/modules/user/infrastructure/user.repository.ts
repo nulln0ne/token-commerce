@@ -20,7 +20,7 @@ export class UserRepository {
         return this.userRepository.findOne({ where: { walletAddress: walletAddress.toLowerCase() } });
     }
 
-    async findOneById(id: string): Promise<User | null> {
-        return this.userRepository.findOne({ where: { id: id.toLowerCase() } });
+    async findOneByUserId(userId: string): Promise<User | null> {
+        return this.userRepository.findOne({ where: { userId: userId.toLowerCase() } });
     }
 }

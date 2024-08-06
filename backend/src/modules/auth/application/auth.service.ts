@@ -4,13 +4,7 @@ import { IErrorConfig } from 'src/config/interfaces/error.config.interface';
 import { RedisRepository } from '../infrastructure/redis.repository';
 import { AuthRepository } from '../infrastructure/auth.repository';
 import { User } from 'src/modules/user/domain/user.entity';
-import {
-    Injectable,
-    Inject,
-    ConflictException,
-    InternalServerErrorException,
-    UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, Inject, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { JwtAccessToken, JwtRefreshToken } from '../domain/jwt.entity';
 
@@ -101,12 +95,23 @@ export class AuthService {
 
     async logout(userId: string) {
         await this.redisRepository.deleteRefreshToken(userId);
+        await this.redisRepository.deleteAccessToken(userId);
     }
 
     async createUser(dto: CreateUserDto): Promise<{ accessToken: string; refreshToken: string }> {
         let user = await this.authRepository.findOneByWalletAddress(dto.walletAddress);
         if (user) {
-            throw new ConflictException(this.errorConfig.USER_ALREADY_EXISTS);
+            const storedAccessToken = await this.redisRepository.getAccessToken(user.userId);
+            const storedRefreshToken = await this.redisRepository.getRefreshToken(user.userId);
+
+            if (storedAccessToken && storedRefreshToken) {
+                return {
+                    accessToken: storedAccessToken.accessToken,
+                    refreshToken: storedRefreshToken.refreshToken,
+                };
+            }
+
+            return this.login(user.userId);
         }
 
         try {
@@ -117,7 +122,7 @@ export class AuthService {
             throw new InternalServerErrorException(this.errorConfig.DATABASE_CONNECTION_ERROR);
         }
 
-        return this.login(user.id);
+        return this.login(user.userId);
     }
 
     async verifyToken(token: string): Promise<any> {

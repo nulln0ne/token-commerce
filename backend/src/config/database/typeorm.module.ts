@@ -1,22 +1,12 @@
-import { IDatabaseConfig } from '../interfaces/database.config.interface';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import databaseConfig from './database.config';
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { dataSourceOptions } from './database.config';
 
 @Module({
     imports: [
-        ConfigModule.forFeature(databaseConfig),
-        TypeOrmModule.forRootAsync({
-            imports: [ConfigModule],
-            useFactory: async (configService: ConfigService) => {
-                const dbConfig = configService.get<IDatabaseConfig>('database');
-                return {
-                    ...dbConfig,
-                    autoLoadEntities: dbConfig.autoLoadEntities,
-                };
-            },
-            inject: [ConfigService],
+        TypeOrmModule.forRoot({
+            ...dataSourceOptions,
+            autoLoadEntities: true,
         }),
     ],
 })

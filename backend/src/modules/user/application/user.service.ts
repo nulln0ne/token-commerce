@@ -10,8 +10,8 @@ export class UserService {
         return this.userRepository.getAll();
     }
 
-    async findOneById(id: string): Promise<User | null> {
-        return this.userRepository.findOneById(id);
+    async findOneByUserId(userId: string): Promise<User | null> {
+        return this.userRepository.findOneByUserId(userId);
     }
 
     async findOneByWalletAddress(walletAddress: string): Promise<User | null> {

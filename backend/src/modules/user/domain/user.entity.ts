@@ -3,7 +3,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeor
 @Entity('users')
 export class User {
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    userId: string;
 
     @Column()
     walletAddress: string;

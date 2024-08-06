@@ -13,8 +13,8 @@ export class UserController {
     }
 
     @UseGuards(JwtAccessGuard)
-    @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.userService.findOneById(id);
+    @Get(':userId')
+    findOne(@Param('userId') userId: string) {
+        return this.userService.findOneByUserId(userId);
     }
 }

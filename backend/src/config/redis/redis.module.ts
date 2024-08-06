@@ -1,16 +1,18 @@
-import { IRedisConfig } from '../interfaces/redis.config.interface';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import redisConfig from './redis.config';
 import { Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
+import { IRedisConfig } from '../interfaces/redis.config.interface';
 
 @Module({
-    imports: [ConfigModule.forFeature(redisConfig)],
     providers: [
         {
             provide: 'REDIS_CLIENT',
             useFactory: (configService: ConfigService): Redis => {
                 const config = configService.get<IRedisConfig>('redis');
+                console.log('Redis Configuration:', config); // Debugging line
+                if (!config) {
+                    throw new Error('Redis configuration is not defined');
+                }
                 return new Redis({
                     host: config.host,
                     port: config.port,
