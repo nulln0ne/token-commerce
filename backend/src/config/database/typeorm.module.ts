@@ -4,9 +4,13 @@ import { dataSourceOptions } from './database.config';
 
 @Module({
     imports: [
-        TypeOrmModule.forRoot({
-            ...dataSourceOptions,
-            autoLoadEntities: true,
+        TypeOrmModule.forRootAsync({
+            useFactory: () => {
+                return {
+                    ...dataSourceOptions,
+                    autoLoadEntities: true,
+                };
+            },
         }),
     ],
 })

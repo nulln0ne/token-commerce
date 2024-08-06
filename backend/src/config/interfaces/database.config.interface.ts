@@ -6,5 +6,4 @@ export interface IDatabaseConfig {
     password: string;
     database: string;
     synchronize: boolean;
-    autoLoadEntities: boolean;
 }
