@@ -22,6 +22,7 @@
         "typeorm:run-migrations": "pnpm run typeorm migration:run -d ./src/config/database/database.config.ts"
     },
     "dependencies": {
+        "@nestjs-modules/ioredis": "^2.0.2",
         "@nestjs/common": "^10.0.0",
         "@nestjs/config": "^3.2.3",
         "@nestjs/core": "^10.0.0",
