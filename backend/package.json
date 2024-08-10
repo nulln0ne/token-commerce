@@ -19,7 +19,7 @@
         "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
         "test:e2e": "jest --config ./test/jest-e2e.json",
         "typeorm": "pnpx typeorm-ts-node-commonjs",
-        "typeorm:run-migrations": "pnpm run typeorm migration:run -d ./src/config/database/database.config.ts"
+        "typeorm:run-migrations": "pnpm run typeorm migration:run -d ./src/config/database/database-config.configuration.ts"
     },
     "dependencies": {
         "@nestjs-modules/ioredis": "^2.0.2",

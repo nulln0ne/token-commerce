@@ -1,3 +1,4 @@
+import { jwtConfiguration } from './jwt';
 import { redisConfiguration } from './redis';
 
-export const configuration = [redisConfiguration];
+export const configuration = [jwtConfiguration, redisConfiguration];

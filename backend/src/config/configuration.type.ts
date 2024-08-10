@@ -1,3 +1,4 @@
 import { RedisConfig } from './redis';
+import { JwtConfig } from './jwt';
 
-export interface Config extends RedisConfig {}
+export interface Config extends JwtConfig, RedisConfig {}

@@ -18,4 +18,16 @@ export class EnvironmentVariables {
 
     @IsString()
     POSTGRES_DB: string;
+
+    @IsString()
+    JWT_ACCESS_SECRET: string;
+
+    @IsNumber()
+    JWT_ACCESS_EXPIRATION_TIME: number;
+
+    @IsString()
+    JWT_REFRESH_SECRET: string;
+
+    @IsNumber()
+    JWT_REFRESH_EXPIRATION_TIME: number;
 }

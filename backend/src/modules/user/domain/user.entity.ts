@@ -1,13 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { IUser } from './user.interface';
 
-@Entity('users')
-export class User {
-    @PrimaryGeneratedColumn('uuid')
-    userId: string;
+export class User implements IUser {
+    public userId: string;
+    public walletAddress: string;
+    public createdAt: Date;
 
-    @Column()
-    walletAddress: string;
-
-    @CreateDateColumn()
-    createdAt: Date;
+    constructor(walletAddress: string) {
+        this.walletAddress = walletAddress.toLowerCase();
+    }
 }

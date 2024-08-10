@@ -1,33 +1,22 @@
-import {
-    Injectable,
-    CanActivate,
-    ExecutionContext,
-    UnauthorizedException,
-    Inject,
-    ForbiddenException,
-} from '@nestjs/common';
-import { IErrorConfig } from 'src/config/interfaces/error.config.interface';
+import { Injectable, CanActivate, ExecutionContext, UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Request } from 'express';
 
 @Injectable()
 export class JwtAccessGuard implements CanActivate {
-    constructor(
-        private readonly authService: AuthService,
-        @Inject('ERROR_CONFIG') private readonly errorConfig: IErrorConfig,
-    ) {}
+    constructor(private readonly authService: AuthService) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request: Request = context.switchToHttp().getRequest();
         const authHeader = request.headers.authorization;
 
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            throw new UnauthorizedException(this.errorConfig.INVALID_ACCESS_TOKEN);
+            throw new UnauthorizedException('Invalid access token');
         }
 
         const token = authHeader.split(' ')[1];
         if (!token) {
-            throw new UnauthorizedException(this.errorConfig.INVALID_ACCESS_TOKEN);
+            throw new UnauthorizedException('Invalid access token');
         }
 
         try {
@@ -36,9 +25,9 @@ export class JwtAccessGuard implements CanActivate {
             return true;
         } catch (err) {
             if (err.name === 'TokenExpiredError') {
-                throw new ForbiddenException(this.errorConfig.TOKEN_EXPIRED);
+                throw new ForbiddenException('Token expired');
             }
-            throw new UnauthorizedException(this.errorConfig.INVALID_ACCESS_TOKEN);
+            throw new UnauthorizedException('Invalid access token');
         }
     }
 }
