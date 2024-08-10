@@ -59,6 +59,8 @@ export class AuthService {
 
     async login(userId: string) {
         try {
+            await this.logout(userId);
+
             const jwtAccessToken = this.createJwtAccessToken(userId);
             const jwtRefreshToken = this.createJwtRefreshToken(userId);
 
@@ -76,8 +78,13 @@ export class AuthService {
 
     async logout(userId: string) {
         try {
-            await this.jwtRepository.deleteAccessToken(userId);
-            await this.jwtRepository.deleteRefreshToken(userId);
+            const accessTokens = await this.jwtRepository.findAccessTokensByUserId(userId);
+            const refreshTokens = await this.jwtRepository.findRefreshTokensByUserId(userId);
+
+            await Promise.all([
+                ...accessTokens.map((token) => this.jwtRepository.deleteAccessToken(token.accessToken)),
+                ...refreshTokens.map((token) => this.jwtRepository.deleteRefreshToken(token.refreshToken)),
+            ]);
         } catch (error) {
             throw new InternalServerErrorException('Logout failed');
         }
@@ -89,6 +96,8 @@ export class AuthService {
             if (!storedRefreshToken || storedRefreshToken.refreshToken !== refreshToken) {
                 throw new UnauthorizedException('Invalid refresh token');
             }
+
+            await this.logout(userId);
 
             const jwtAccessToken = this.createJwtAccessToken(userId);
             const jwtRefreshToken = this.createJwtRefreshToken(userId);

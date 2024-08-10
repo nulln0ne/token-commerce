@@ -79,4 +79,28 @@ export class JwtRepository implements IJwtRepository {
             throw new InternalServerErrorException('Failed to verify token');
         }
     }
+
+    async findAccessTokensByUserId(userId: string): Promise<JwtAccessToken[]> {
+        try {
+            const keys = await this.redisClient.keys(`access_token:*`);
+            const tokens = await Promise.all(keys.map((key) => this.redisClient.get(key)));
+            return tokens
+                .map((token) => JSON.parse(token) as JwtAccessToken)
+                .filter((token) => token.userId === userId);
+        } catch (error) {
+            throw new InternalServerErrorException('Failed to find access tokens');
+        }
+    }
+
+    async findRefreshTokensByUserId(userId: string): Promise<JwtRefreshToken[]> {
+        try {
+            const keys = await this.redisClient.keys(`refresh_token:*`);
+            const tokens = await Promise.all(keys.map((key) => this.redisClient.get(key)));
+            return tokens
+                .map((token) => JSON.parse(token) as JwtRefreshToken)
+                .filter((token) => token.userId === userId);
+        } catch (error) {
+            throw new InternalServerErrorException('Failed to find refresh tokens');
+        }
+    }
 }
