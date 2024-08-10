@@ -1,16 +1,26 @@
 import { Module, forwardRef } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './presentation/auth.controller';
-import { AuthRepository } from './infrastructure/auth.repository';
+import { JwtRepository } from './infrastructure/jwt.repository';
 import { AuthService } from './application/auth.service';
-import { RedisRepository } from './infrastructure/redis.repository';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from 'src/modules/user/domain/user.entity';
 import { UserModule } from 'src/modules/user/user.module';
+import { JwtConfigService } from 'src/config/jwt/jwt-config.service';
 
 @Module({
-    imports: [forwardRef(() => UserModule), TypeOrmModule.forFeature([User])],
+    imports: [
+        forwardRef(() => UserModule),
+        JwtModule.registerAsync({
+            useClass: JwtConfigService,
+        }),
+    ],
     controllers: [AuthController],
-    providers: [AuthService, RedisRepository, AuthRepository],
-    exports: [AuthService, RedisRepository, AuthRepository],
+    providers: [
+        AuthService,
+        {
+            provide: 'IJwtRepository',
+            useClass: JwtRepository,
+        },
+    ],
+    exports: [AuthService],
 })
 export class AuthModule {}

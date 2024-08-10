@@ -1,15 +1,25 @@
-import { CreateUserDto } from 'src/modules/user/application/create-user.dto';
+import { CreateUserDto } from 'src/modules/user/application/';
 import { AuthService } from '../application/auth.service';
+import { UserService } from 'src/modules/user/application';
 import { Controller, Body, Post, UseGuards } from '@nestjs/common';
 import { JwtAccessGuard } from '../application/jwt-access.guard';
 
 @Controller('auth')
 export class AuthController {
-    constructor(private readonly authService: AuthService) {}
+    constructor(
+        private readonly authService: AuthService,
+        private readonly userService: UserService,
+    ) {}
+
+    @Post('register')
+    async register(@Body() dto: CreateUserDto) {
+        const user = await this.userService.createUser(dto);
+        return this.authService.login(user.userId);
+    }
 
     @Post('login')
-    async auth(@Body() dto: CreateUserDto) {
-        return this.authService.createUser(dto);
+    async login(@Body('userId') userId: string) {
+        return this.authService.login(userId);
     }
 
     @UseGuards(JwtAccessGuard)

@@ -1,120 +1,115 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import { IJwtRepository } from '../domain';
 import { JwtService } from '@nestjs/jwt';
-import { RedisRepository } from '../infrastructure/redis.repository';
-import { AuthRepository } from '../infrastructure/auth.repository';
-import { User } from 'src/modules/user/domain/user.entity';
-import { JwtAccessToken, JwtRefreshToken } from '../domain/jwt.entity';
 import { JwtConfigService } from 'src/config/jwt/jwt-config.service';
-import { CreateUserDto } from 'src/modules/user/application/create-user.dto';
+import { JwtAccessToken, JwtRefreshToken } from '../domain';
 
 @Injectable()
 export class AuthService {
     constructor(
+        @Inject('IJwtRepository')
+        private readonly jwtRepository: IJwtRepository,
         private readonly jwtService: JwtService,
-        private readonly redisRepository: RedisRepository,
-        private readonly authRepository: AuthRepository,
         private readonly jwtConfigService: JwtConfigService,
     ) {}
 
     private createJwtAccessToken(userId: string): JwtAccessToken {
-        const payload = { sub: userId };
-        const jwtConfig = this.jwtConfigService.createJwtOptions();
+        try {
+            const payload = { sub: userId };
+            const jwtConfig = this.jwtConfigService.createJwtOptions();
+            const ttl = Number(jwtConfig.signOptions.expiresIn);
+            const accessToken = this.jwtService.sign(payload, {
+                expiresIn: ttl,
+                secret: jwtConfig.secret,
+            });
 
-        const ttl = Number(jwtConfig.signOptions.expiresIn);
-        const accessToken = this.jwtService.sign(payload, {
-            expiresIn: ttl,
-            secret: jwtConfig.secret,
-        });
-
-        return {
-            userId,
-            accessToken,
-            ttl,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-        };
+            return {
+                userId,
+                accessToken,
+                ttl,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+        } catch (error) {
+            throw new InternalServerErrorException('Failed to create JWT access token');
+        }
     }
 
     private createJwtRefreshToken(userId: string): JwtRefreshToken {
-        const payload = { sub: userId };
-        const refreshTokenConfig = this.jwtConfigService.getRefreshTokenConfig();
+        try {
+            const payload = { sub: userId };
+            const refreshTokenConfig = this.jwtConfigService.getRefreshTokenConfig();
+            const ttl = Number(refreshTokenConfig.signOptions.expiresIn);
+            const refreshToken = this.jwtService.sign(payload, {
+                expiresIn: ttl,
+                secret: refreshTokenConfig.secret,
+            });
 
-        const ttl = Number(refreshTokenConfig.signOptions.expiresIn);
-        const refreshToken = this.jwtService.sign(payload, {
-            expiresIn: ttl,
-            secret: refreshTokenConfig.secret,
-        });
-
-        return {
-            userId,
-            refreshToken,
-            ttl,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-        };
+            return {
+                userId,
+                refreshToken,
+                ttl,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+        } catch (error) {
+            throw new InternalServerErrorException('Failed to create JWT refresh token');
+        }
     }
 
     async login(userId: string) {
-        const jwtAccessToken = this.createJwtAccessToken(userId);
-        const jwtRefreshToken = this.createJwtRefreshToken(userId);
+        try {
+            const jwtAccessToken = this.createJwtAccessToken(userId);
+            const jwtRefreshToken = this.createJwtRefreshToken(userId);
 
-        await this.redisRepository.saveAccessToken(jwtAccessToken);
-        await this.redisRepository.saveRefreshToken(jwtRefreshToken);
+            await this.jwtRepository.saveAccessToken(jwtAccessToken);
+            await this.jwtRepository.saveRefreshToken(jwtRefreshToken);
 
-        return {
-            accessToken: jwtAccessToken.accessToken,
-            refreshToken: jwtRefreshToken.refreshToken,
-        };
-    }
-
-    async refreshTokens(userId: string, refreshToken: string) {
-        const storedRefreshToken = await this.redisRepository.getRefreshToken(userId);
-        if (!storedRefreshToken || storedRefreshToken.refreshToken !== refreshToken) {
-            throw new Error('Invalid refresh token');
+            return {
+                accessToken: jwtAccessToken.accessToken,
+                refreshToken: jwtRefreshToken.refreshToken,
+            };
+        } catch (error) {
+            throw new InternalServerErrorException('Login failed');
         }
-
-        const jwtAccessToken = this.createJwtAccessToken(userId);
-        const jwtRefreshToken = this.createJwtRefreshToken(userId);
-
-        await this.redisRepository.saveAccessToken(jwtAccessToken);
-        await this.redisRepository.saveRefreshToken(jwtRefreshToken);
-
-        return {
-            accessToken: jwtAccessToken.accessToken,
-            refreshToken: jwtRefreshToken.refreshToken,
-        };
     }
 
     async logout(userId: string) {
-        await this.redisRepository.deleteRefreshToken(userId);
-        await this.redisRepository.deleteAccessToken(userId);
+        try {
+            await this.jwtRepository.deleteAccessToken(userId);
+            await this.jwtRepository.deleteRefreshToken(userId);
+        } catch (error) {
+            throw new InternalServerErrorException('Logout failed');
+        }
     }
 
-    async createUser(dto: CreateUserDto): Promise<{ accessToken: string; refreshToken: string }> {
-        let user = await this.authRepository.findOneByWalletAddress(dto.walletAddress);
-        if (user) {
-            const storedAccessToken = await this.redisRepository.getAccessToken(user.userId);
-            const storedRefreshToken = await this.redisRepository.getRefreshToken(user.userId);
-
-            if (storedAccessToken && storedRefreshToken) {
-                return {
-                    accessToken: storedAccessToken.accessToken,
-                    refreshToken: storedRefreshToken.refreshToken,
-                };
+    async refreshTokens(userId: string, refreshToken: string) {
+        try {
+            const storedRefreshToken = await this.jwtRepository.findRefreshToken(refreshToken);
+            if (!storedRefreshToken || storedRefreshToken.refreshToken !== refreshToken) {
+                throw new UnauthorizedException('Invalid refresh token');
             }
 
-            return this.login(user.userId);
+            const jwtAccessToken = this.createJwtAccessToken(userId);
+            const jwtRefreshToken = this.createJwtRefreshToken(userId);
+
+            await this.jwtRepository.saveAccessToken(jwtAccessToken);
+            await this.jwtRepository.saveRefreshToken(jwtRefreshToken);
+
+            return {
+                accessToken: jwtAccessToken.accessToken,
+                refreshToken: jwtRefreshToken.refreshToken,
+            };
+        } catch (error) {
+            throw new InternalServerErrorException('Token refresh failed');
         }
-
-        user = new User();
-        user.walletAddress = dto.walletAddress;
-        user = await this.authRepository.saveUser(user);
-
-        return this.login(user.userId);
     }
 
     async verifyToken(token: string): Promise<any> {
-        const jwtConfig = this.jwtConfigService.createJwtOptions();
-        return await this.jwtService.verifyAsync(token, { secret: jwtConfig.secret });
+        try {
+            return await this.jwtService.verifyAsync(token);
+        } catch (err) {
+            throw new UnauthorizedException('Invalid token');
+        }
     }
 }

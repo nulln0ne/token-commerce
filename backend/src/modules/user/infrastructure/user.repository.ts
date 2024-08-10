@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserOrmEntity } from './user.orm-entity';
@@ -13,23 +13,41 @@ export class UserRepository implements IUserRepository {
         private readonly ormRepository: Repository<UserOrmEntity>,
     ) {}
 
-    async save(user: User): Promise<void> {
-        const ormEntity = UserOrmMapper.toOrmEntity(user);
-        await this.ormRepository.save(ormEntity);
+    async getAllUsers(): Promise<User[]> {
+        try {
+            const ormEntities = await this.ormRepository.find();
+            return ormEntities.map((ormEntity) => UserOrmMapper.toDomainEntity(ormEntity));
+        } catch (error) {
+            throw new InternalServerErrorException('Failed to retrieve users');
+        }
     }
 
-    async findAllUsers(): Promise<User[]> {
-        const ormEntities = await this.ormRepository.find();
-        return ormEntities.map((ormEntity) => UserOrmMapper.toDomainEntity(ormEntity));
+    async save(user: User): Promise<void> {
+        try {
+            const ormEntity = UserOrmMapper.toOrmEntity(user);
+            await this.ormRepository.save(ormEntity);
+        } catch (error) {
+            throw new InternalServerErrorException('Failed to save user');
+        }
     }
 
     async findUserByWalletAddress(walletAddress: string): Promise<User | null> {
-        const ormEntity = await this.ormRepository.findOne({ where: { walletAddress: walletAddress.toLowerCase() } });
-        return ormEntity ? UserOrmMapper.toDomainEntity(ormEntity) : null;
+        try {
+            const ormEntity = await this.ormRepository.findOne({
+                where: { walletAddress: walletAddress.toLowerCase() },
+            });
+            return ormEntity ? UserOrmMapper.toDomainEntity(ormEntity) : null;
+        } catch (error) {
+            throw new InternalServerErrorException('Failed to find user by wallet address');
+        }
     }
 
     async findUserByUserId(userId: string): Promise<User | null> {
-        const ormEntity = await this.ormRepository.findOne({ where: { id: userId } });
-        return ormEntity ? UserOrmMapper.toDomainEntity(ormEntity) : null;
+        try {
+            const ormEntity = await this.ormRepository.findOne({ where: { userId: userId } });
+            return ormEntity ? UserOrmMapper.toDomainEntity(ormEntity) : null;
+        } catch (error) {
+            throw new InternalServerErrorException('Failed to find user by user ID');
+        }
     }
 }

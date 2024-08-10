@@ -1,27 +1,52 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, ConflictException, InternalServerErrorException } from '@nestjs/common';
 import { User } from '../domain';
 import { IUserRepository } from '../domain';
+import { CreateUserDto } from './create-user.dto';
 
 @Injectable()
 export class UserService {
-    constructor(private readonly userRepository: IUserRepository) {}
+    constructor(
+        @Inject('IUserRepository')
+        private readonly userRepository: IUserRepository,
+    ) {}
 
-    async createUser(walletAddress: string): Promise<User> {
-        const newUser = new User(walletAddress);
-        await this.userRepository.save(newUser);
+    async createUser(createUserDto: CreateUserDto): Promise<User> {
+        try {
+            const existingUser = await this.userRepository.findUserByWalletAddress(createUserDto.walletAddress);
 
-        return newUser;
+            if (existingUser) {
+                throw new ConflictException('User with this wallet address already exists');
+            }
+
+            const newUser = new User(createUserDto.walletAddress);
+            await this.userRepository.save(newUser);
+            return newUser;
+        } catch (error) {
+            throw new InternalServerErrorException('Failed to create user');
+        }
     }
 
     async getAllUsers(): Promise<User[]> {
-        return this.userRepository.getAllUsers();
+        try {
+            return this.userRepository.getAllUsers();
+        } catch (error) {
+            throw new InternalServerErrorException('Failed to retrieve users');
+        }
     }
 
     async findUserByWalletAddress(walletAddress: string): Promise<User | null> {
-        return this.userRepository.findUserByWalletAddress(walletAddress);
+        try {
+            return this.userRepository.findUserByWalletAddress(walletAddress);
+        } catch (error) {
+            throw new InternalServerErrorException('Failed to find user by wallet address');
+        }
     }
 
     async findUserByUserId(userId: string): Promise<User | null> {
-        return this.userRepository.findUserByUserId(userId);
+        try {
+            return this.userRepository.findUserByUserId(userId);
+        } catch (error) {
+            throw new InternalServerErrorException('Failed to find user by user ID');
+        }
     }
 }

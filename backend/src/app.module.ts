@@ -1,11 +1,11 @@
-import { Module, Global } from '@nestjs/common';
+import { Module, Global, InternalServerErrorException } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { JwtConfigService, RedisConfigService, configuration, dataSourceOptions, validate } from '@app/config';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { JwtModule } from '@nestjs/jwt';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { JwtConfigService, RedisConfigService, configuration, validate, dataSourceOptions } from './config';
 import Redis from 'ioredis';
 
 @Global()
@@ -23,7 +23,9 @@ import Redis from 'ioredis';
         JwtModule.registerAsync({
             useClass: JwtConfigService,
         }),
-        RedisModule.forRootAsync({ useClass: RedisConfigService }),
+        RedisModule.forRootAsync({
+            useClass: RedisConfigService,
+        }),
         UserModule,
         AuthModule,
     ],
@@ -33,8 +35,15 @@ import Redis from 'ioredis';
         {
             provide: 'REDIS_CLIENT',
             useFactory: (configService: ConfigService) => {
-                const { url } = configService.get('redis');
-                return new Redis(url);
+                try {
+                    const { url } = configService.get('redis');
+                    if (!url) {
+                        throw new InternalServerErrorException('Redis URL is not configured.');
+                    }
+                    return new Redis(url);
+                } catch (error) {
+                    throw new InternalServerErrorException('Failed to create Redis client');
+                }
             },
             inject: [ConfigService],
         },

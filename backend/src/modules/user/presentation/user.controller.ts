@@ -1,5 +1,5 @@
 import { JwtAccessGuard } from 'src/modules/auth/application/jwt-access.guard';
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards, InternalServerErrorException } from '@nestjs/common';
 import { UserService } from '../application';
 
 @Controller('users')
@@ -8,13 +8,21 @@ export class UserController {
 
     @UseGuards(JwtAccessGuard)
     @Get()
-    getAll() {
-        return this.userService.getAllUsers();
+    async getAll() {
+        try {
+            return await this.userService.getAllUsers();
+        } catch (error) {
+            throw new InternalServerErrorException('Failed to retrieve users');
+        }
     }
 
     @UseGuards(JwtAccessGuard)
     @Get(':userId')
-    findOne(@Param('userId') userId: string) {
-        return this.userService.findUserByUserId(userId);
+    async findOne(@Param('userId') userId: string) {
+        try {
+            return await this.userService.findUserByUserId(userId);
+        } catch (error) {
+            throw new InternalServerErrorException('Failed to retrieve user');
+        }
     }
 }
