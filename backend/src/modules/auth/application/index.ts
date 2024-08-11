@@ -1,2 +1,2 @@
-export * from './auth.service';
-export * from './jwt-access.guard';
+export * from './services/auth.service';
+export * from './guards/jwt-access.guard';

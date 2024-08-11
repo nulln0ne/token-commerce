@@ -1,3 +1,3 @@
-export * from './user.entity';
-export * from './user.interface';
-export * from './user-repository.interface';
+export * from './entities/user.entity';
+export * from './entities/user-entity.interface';
+export * from './interfaces/user-repository.interface';

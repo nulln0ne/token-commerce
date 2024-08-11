@@ -1,4 +1,4 @@
-import { IUser } from './user.interface';
+import { IUser } from './user-entity.interface';
 
 export class User implements IUser {
     public userId: string;

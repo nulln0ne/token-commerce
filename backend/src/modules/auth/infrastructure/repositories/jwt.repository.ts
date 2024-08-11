@@ -1,6 +1,6 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { IJwtRepository } from '../domain/jwt-repository.interface';
-import { JwtAccessToken, JwtRefreshToken } from '../domain/jwt.interface';
+import { Injectable, InternalServerErrorException, Inject } from '@nestjs/common';
+import { IJwtRepository } from '../../domain';
+import { IJwtAccessToken, IJwtRefreshToken } from '../../domain';
 import { JwtService } from '@nestjs/jwt';
 import Redis from 'ioredis';
 
@@ -8,19 +8,14 @@ import Redis from 'ioredis';
 export class JwtRepository implements IJwtRepository {
     private readonly redisClient: Redis;
 
-    constructor(private readonly jwtService: JwtService) {
-        try {
-            this.redisClient = new Redis({
-                host: process.env.REDIS_HOST,
-                port: parseInt(process.env.REDIS_PORT, 10),
-                password: process.env.REDIS_PASSWORD,
-            });
-        } catch (error) {
-            throw new InternalServerErrorException('Failed to initialize Redis client');
-        }
+    constructor(
+        private readonly jwtService: JwtService,
+        @Inject('REDIS_CLIENT') redisClient: Redis,
+    ) {
+        this.redisClient = redisClient;
     }
 
-    async saveAccessToken(token: JwtAccessToken): Promise<void> {
+    async saveAccessToken(token: IJwtAccessToken): Promise<void> {
         try {
             await this.redisClient.set(`access_token:${token.accessToken}`, JSON.stringify(token), 'EX', token.ttl);
         } catch (error) {
@@ -28,7 +23,7 @@ export class JwtRepository implements IJwtRepository {
         }
     }
 
-    async saveRefreshToken(token: JwtRefreshToken): Promise<void> {
+    async saveRefreshToken(token: IJwtRefreshToken): Promise<void> {
         try {
             await this.redisClient.set(`refresh_token:${token.refreshToken}`, JSON.stringify(token), 'EX', token.ttl);
         } catch (error) {
@@ -36,27 +31,27 @@ export class JwtRepository implements IJwtRepository {
         }
     }
 
-    async findAccessToken(token: string): Promise<JwtAccessToken | null> {
+    async findAccessToken(token: string): Promise<IJwtAccessToken | null> {
         try {
             const result = await this.redisClient.get(`access_token:${token}`);
             if (!result) return null;
-            return JSON.parse(result) as JwtAccessToken;
+            return JSON.parse(result) as IJwtAccessToken;
         } catch (error) {
-            throw new InternalServerErrorException('Failed to find access token');
+            throw new InternalServerErrorException('Failed to retrieve access token');
         }
     }
 
-    async findRefreshToken(token: string): Promise<JwtRefreshToken | null> {
+    async findRefreshToken(token: string): Promise<IJwtRefreshToken | null> {
         try {
             const result = await this.redisClient.get(`refresh_token:${token}`);
             if (!result) return null;
-            return JSON.parse(result) as JwtRefreshToken;
+            return JSON.parse(result) as IJwtRefreshToken;
         } catch (error) {
-            throw new InternalServerErrorException('Failed to find refresh token');
+            throw new InternalServerErrorException('Failed to retrieve refresh token');
         }
     }
 
-    async deleteAccessToken(token: string): Promise<void> {
+    async removeAccessToken(token: string): Promise<void> {
         try {
             await this.redisClient.del(`access_token:${token}`);
         } catch (error) {
@@ -64,7 +59,7 @@ export class JwtRepository implements IJwtRepository {
         }
     }
 
-    async deleteRefreshToken(token: string): Promise<void> {
+    async removeRefreshToken(token: string): Promise<void> {
         try {
             await this.redisClient.del(`refresh_token:${token}`);
         } catch (error) {
@@ -72,35 +67,35 @@ export class JwtRepository implements IJwtRepository {
         }
     }
 
-    async verifyToken(token: string): Promise<any> {
+    async validateToken(token: string): Promise<any> {
         try {
             return await this.jwtService.verifyAsync(token);
         } catch (error) {
-            throw new InternalServerErrorException('Failed to verify token');
+            throw new InternalServerErrorException('Failed to validate token');
         }
     }
 
-    async findAccessTokensByUserId(userId: string): Promise<JwtAccessToken[]> {
+    async findAccessTokensByUserId(userId: string): Promise<IJwtAccessToken[]> {
         try {
             const keys = await this.redisClient.keys(`access_token:*`);
             const tokens = await Promise.all(keys.map((key) => this.redisClient.get(key)));
             return tokens
-                .map((token) => JSON.parse(token) as JwtAccessToken)
+                .map((token) => JSON.parse(token) as IJwtAccessToken)
                 .filter((token) => token.userId === userId);
         } catch (error) {
-            throw new InternalServerErrorException('Failed to find access tokens');
+            throw new InternalServerErrorException('Failed to retrieve access tokens');
         }
     }
 
-    async findRefreshTokensByUserId(userId: string): Promise<JwtRefreshToken[]> {
+    async findRefreshTokensByUserId(userId: string): Promise<IJwtRefreshToken[]> {
         try {
             const keys = await this.redisClient.keys(`refresh_token:*`);
             const tokens = await Promise.all(keys.map((key) => this.redisClient.get(key)));
             return tokens
-                .map((token) => JSON.parse(token) as JwtRefreshToken)
+                .map((token) => JSON.parse(token) as IJwtRefreshToken)
                 .filter((token) => token.userId === userId);
         } catch (error) {
-            throw new InternalServerErrorException('Failed to find refresh tokens');
+            throw new InternalServerErrorException('Failed to retrieve refresh tokens');
         }
     }
 }

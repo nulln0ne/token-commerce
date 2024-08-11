@@ -1,6 +1,6 @@
-import { JwtToken, JwtAccessToken, JwtRefreshToken } from './jwt.interface';
+import { IJwtToken, IJwtAccessToken, IJwtRefreshToken } from './jwt-entity.interface';
 
-export class JwtTokenEntity implements JwtToken {
+export class JwtTokenEntity implements IJwtToken {
     userId: string;
     ttl: number;
     createdAt: Date;
@@ -14,7 +14,7 @@ export class JwtTokenEntity implements JwtToken {
     }
 }
 
-export class JwtAccessTokenEntity extends JwtTokenEntity implements JwtAccessToken {
+export class JwtAccessTokenEntity extends JwtTokenEntity implements IJwtAccessToken {
     accessToken: string;
 
     constructor(userId: string, ttl: number, createdAt: Date, updatedAt: Date, accessToken: string) {
@@ -23,7 +23,7 @@ export class JwtAccessTokenEntity extends JwtTokenEntity implements JwtAccessTok
     }
 }
 
-export class JwtRefreshTokenEntity extends JwtTokenEntity implements JwtRefreshToken {
+export class JwtRefreshTokenEntity extends JwtTokenEntity implements IJwtRefreshToken {
     refreshToken: string;
 
     constructor(userId: string, ttl: number, createdAt: Date, updatedAt: Date, refreshToken: string) {

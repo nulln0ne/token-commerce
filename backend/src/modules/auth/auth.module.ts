@@ -1,8 +1,9 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
-import { AuthController } from './presentation/auth.controller';
-import { JwtRepository } from './infrastructure/jwt.repository';
-import { AuthService } from './application/auth.service';
+import { AuthController } from './presentation';
+import { JwtRepository } from './infrastructure/';
+import { NonceRepository } from './infrastructure/';
+import { AuthService } from './application';
 import { UserModule } from 'src/modules/user/user.module';
 import { JwtConfigService } from 'src/config/jwt/jwt-config.service';
 
@@ -19,6 +20,10 @@ import { JwtConfigService } from 'src/config/jwt/jwt-config.service';
         {
             provide: 'IJwtRepository',
             useClass: JwtRepository,
+        },
+        {
+            provide: 'INonceRepository',
+            useClass: NonceRepository,
         },
     ],
     exports: [AuthService],

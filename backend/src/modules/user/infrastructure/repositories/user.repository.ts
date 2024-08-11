@@ -1,10 +1,10 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserOrmEntity } from './user.orm-entity';
-import { UserOrmMapper } from './user.mapper';
-import { IUserRepository } from '../domain';
-import { User } from '../domain';
+import { UserOrmEntity } from '../orm-entities/user.orm-entity';
+import { UserOrmMapper } from '../utils/user.mapper';
+import { IUserRepository } from '../../domain';
+import { User } from '../../domain';
 
 @Injectable()
 export class UserRepository implements IUserRepository {

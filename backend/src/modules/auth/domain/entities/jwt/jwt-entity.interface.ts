@@ -1,14 +1,14 @@
-export interface JwtToken {
+export interface IJwtToken {
     userId: string;
     ttl: number;
     createdAt: Date;
     updatedAt: Date;
 }
 
-export interface JwtAccessToken extends JwtToken {
+export interface IJwtAccessToken extends IJwtToken {
     accessToken: string;
 }
 
-export interface JwtRefreshToken extends JwtToken {
+export interface IJwtRefreshToken extends IJwtToken {
     refreshToken: string;
 }

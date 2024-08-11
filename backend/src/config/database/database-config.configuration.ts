@@ -5,7 +5,7 @@ config();
 
 export const dataSourceOptions: DataSourceOptions = {
     type: 'postgres',
-    synchronize: false,
+    synchronize: true,
     logging: false,
     host: process.env.POSTGRES_HOST,
     port: +process.env.POSTGRES_PORT,
