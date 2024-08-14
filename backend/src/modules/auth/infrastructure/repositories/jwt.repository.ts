@@ -1,6 +1,7 @@
 import { Injectable, InternalServerErrorException, Inject } from '@nestjs/common';
-import { IJwtRepository } from '../../domain';
-import { IJwtAccessToken, IJwtRefreshToken } from '../../domain';
+import { IJwtRepository } from '../../domain/interfaces/jwt-repository.interface';
+import { IJwtAccessToken, IJwtRefreshToken } from '../../domain/entities/jwt/jwt-entity.interface';
+import { JwtAccessTokenEntity, JwtRefreshTokenEntity } from '../../domain';
 import { JwtService } from '@nestjs/jwt';
 import Redis from 'ioredis';
 
@@ -16,16 +17,28 @@ export class JwtRepository implements IJwtRepository {
     }
 
     async saveAccessToken(token: IJwtAccessToken): Promise<void> {
+        const createdAt = new Date();
+        const updatedAt = new Date();
+        const entity = new JwtAccessTokenEntity(token.userId, token.ttl, token.accessToken);
+        entity.createdAt = createdAt;
+        entity.updatedAt = updatedAt;
+
         try {
-            await this.redisClient.set(`access_token:${token.accessToken}`, JSON.stringify(token), 'EX', token.ttl);
+            await this.redisClient.set(`access_token:${token.accessToken}`, JSON.stringify(entity), 'EX', token.ttl);
         } catch (error) {
             throw new InternalServerErrorException('Failed to save access token');
         }
     }
 
     async saveRefreshToken(token: IJwtRefreshToken): Promise<void> {
+        const createdAt = new Date();
+        const updatedAt = new Date();
+        const entity = new JwtRefreshTokenEntity(token.userId, token.ttl, token.refreshToken);
+        entity.createdAt = createdAt;
+        entity.updatedAt = updatedAt;
+
         try {
-            await this.redisClient.set(`refresh_token:${token.refreshToken}`, JSON.stringify(token), 'EX', token.ttl);
+            await this.redisClient.set(`refresh_token:${token.refreshToken}`, JSON.stringify(entity), 'EX', token.ttl);
         } catch (error) {
             throw new InternalServerErrorException('Failed to save refresh token');
         }
@@ -67,14 +80,6 @@ export class JwtRepository implements IJwtRepository {
         }
     }
 
-    async validateToken(token: string): Promise<any> {
-        try {
-            return await this.jwtService.verifyAsync(token);
-        } catch (error) {
-            throw new InternalServerErrorException('Failed to validate token');
-        }
-    }
-
     async findAccessTokensByUserId(userId: string): Promise<IJwtAccessToken[]> {
         try {
             const keys = await this.redisClient.keys(`access_token:*`);
@@ -96,6 +101,15 @@ export class JwtRepository implements IJwtRepository {
                 .filter((token) => token.userId === userId);
         } catch (error) {
             throw new InternalServerErrorException('Failed to retrieve refresh tokens');
+        }
+    }
+
+    // Реализация метода validateToken
+    async validateToken(token: string): Promise<any> {
+        try {
+            return await this.jwtService.verifyAsync(token);
+        } catch (error) {
+            throw new InternalServerErrorException('Failed to validate token');
         }
     }
 }

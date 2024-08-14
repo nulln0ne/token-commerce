@@ -1,12 +1,12 @@
 import { INonce } from './nonce-entity.interface';
 
 export class NonceEntity implements INonce {
-    userId: string;
+    walletAddress: string;
     nonce: string;
     createdAt: Date;
 
-    constructor(userId: string, nonce: string) {
-        this.userId = userId;
+    constructor(walletAddress: string, nonce: string) {
+        this.walletAddress = walletAddress;
         this.nonce = nonce;
         this.createdAt = new Date();
     }

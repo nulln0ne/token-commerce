@@ -1,5 +1,5 @@
 export interface INonce {
-    userId: string;
+    walletAddress: string;
     nonce: string;
     createdAt: Date;
 }
