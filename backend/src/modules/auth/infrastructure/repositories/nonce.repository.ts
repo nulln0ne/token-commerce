@@ -5,42 +5,30 @@ import Redis from 'ioredis';
 
 @Injectable()
 export class NonceRepository implements INonceRepository {
-    private readonly redisClient: Redis;
+    constructor(@Inject('REDIS_CLIENT') private readonly redisClient: Redis) {}
 
-    constructor(@Inject('REDIS_CLIENT') redisClient: Redis) {
-        this.redisClient = redisClient;
+    private async handleRedisOperation<T>(operation: () => Promise<T>): Promise<T | null> {
+        try {
+            return await operation();
+        } catch (error) {
+            console.error('Redis operation failed:', error);
+            throw new InternalServerErrorException('Redis operation failed');
+        }
     }
 
     async saveNonce(nonceEntity: INonce): Promise<void> {
         const key = `nonce:${nonceEntity.walletAddress}`;
-        try {
-            console.log(`Attempting to save nonce: ${key} -> ${nonceEntity.nonce}`);
-            await this.redisClient.set(key, nonceEntity.nonce, 'EX', 60);
-            console.log(`Nonce saved in Redis: ${key} -> ${nonceEntity.nonce}`);
-        } catch (error) {
-            console.error('Failed to save nonce in Redis:', error);
-            throw new InternalServerErrorException('Failed to save nonce');
-        }
+        await this.handleRedisOperation(() => this.redisClient.set(key, nonceEntity.nonce, 'EX', 60));
     }
 
     async findNonceByWalletAddress(walletAddress: string): Promise<INonce | null> {
-        try {
-            const key = `nonce:${walletAddress}`;
-            const nonce = await this.redisClient.get(key);
-            if (!nonce) return null;
-
-            return { walletAddress, nonce, createdAt: new Date() };
-        } catch (error) {
-            throw new InternalServerErrorException('Failed to find nonce');
-        }
+        const key = `nonce:${walletAddress}`;
+        const nonce = await this.handleRedisOperation(() => this.redisClient.get(key));
+        return nonce ? { walletAddress, nonce, createdAt: new Date() } : null;
     }
 
     async removeNonce(walletAddress: string): Promise<void> {
-        try {
-            const key = `nonce:${walletAddress}`;
-            await this.redisClient.del(key);
-        } catch (error) {
-            throw new InternalServerErrorException('Failed to delete nonce');
-        }
+        const key = `nonce:${walletAddress}`;
+        await this.handleRedisOperation(() => this.redisClient.del(key));
     }
 }

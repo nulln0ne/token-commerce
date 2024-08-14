@@ -1,32 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtModuleOptions, JwtOptionsFactory } from '@nestjs/jwt';
-
 import { JwtConfig } from './jwt-config.type';
 
 @Injectable()
 export class JwtConfigService implements JwtOptionsFactory {
     constructor(private readonly configService: ConfigService<JwtConfig>) {}
 
-    public createJwtOptions(): JwtModuleOptions {
-        const jwtAccess = this.configService.get<JwtConfig['jwtAccess']>('jwtAccess');
-
+    private getJwtConfig(type: 'jwtAccess' | 'jwtRefresh'): JwtModuleOptions {
+        const config = this.configService.get<JwtConfig[typeof type]>(type);
         return {
-            secret: jwtAccess.secret,
+            secret: config.secret,
             signOptions: {
-                expiresIn: jwtAccess.expirationTime,
+                expiresIn: config.expirationTime,
             },
         };
     }
 
-    public getRefreshTokenConfig(): JwtModuleOptions {
-        const jwtRefresh = this.configService.get<JwtConfig['jwtRefresh']>('jwtRefresh');
+    public createJwtOptions(): JwtModuleOptions {
+        return this.getJwtConfig('jwtAccess');
+    }
 
-        return {
-            secret: jwtRefresh.secret,
-            signOptions: {
-                expiresIn: jwtRefresh.expirationTime,
-            },
-        };
+    public getRefreshTokenConfig(): JwtModuleOptions {
+        return this.getJwtConfig('jwtRefresh');
     }
 }

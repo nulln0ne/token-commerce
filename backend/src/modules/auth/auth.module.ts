@@ -1,11 +1,10 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './presentation';
-import { JwtRepository } from './infrastructure/';
-import { NonceRepository } from './infrastructure/';
+import { JwtRepository, NonceRepository } from './infrastructure';
 import { AuthService } from './application';
-import { UserModule } from 'src/modules/user/user.module';
-import { JwtConfigService } from 'src/config/jwt/jwt-config.service';
+import { JwtConfigService } from '../../config/jwt';
+import { UserModule } from '../user/user.module';
 
 @Module({
     imports: [

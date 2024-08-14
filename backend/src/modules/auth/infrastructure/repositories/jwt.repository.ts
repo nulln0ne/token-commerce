@@ -6,10 +6,15 @@ import Redis from 'ioredis';
 
 @Injectable()
 export class JwtRepository implements IJwtRepository {
-    private readonly redisClient: Redis;
+    constructor(@Inject('REDIS_CLIENT') private readonly redisClient: Redis) {}
 
-    constructor(@Inject('REDIS_CLIENT') redisClient: Redis) {
-        this.redisClient = redisClient;
+    private async handleRedisOperation<T>(operation: () => Promise<T>): Promise<T | null> {
+        try {
+            return await operation();
+        } catch (error) {
+            console.error('Redis operation failed:', error);
+            throw new InternalServerErrorException('Redis operation failed');
+        }
     }
 
     async saveAccessToken(token: IJwtAccessToken): Promise<void> {
@@ -17,11 +22,7 @@ export class JwtRepository implements IJwtRepository {
         if (!token.userId) {
             throw new InternalServerErrorException('User ID is undefined while saving access token');
         }
-        try {
-            await this.redisClient.set(key, token.accessToken, 'EX', token.ttl);
-        } catch (error) {
-            throw new InternalServerErrorException('Failed to save access token');
-        }
+        await this.handleRedisOperation(() => this.redisClient.set(key, token.accessToken, 'EX', token.ttl));
     }
 
     async saveRefreshToken(token: IJwtRefreshToken): Promise<void> {
@@ -29,52 +30,28 @@ export class JwtRepository implements IJwtRepository {
         if (!token.userId) {
             throw new InternalServerErrorException('User ID is undefined while saving refresh token');
         }
-        try {
-            await this.redisClient.set(key, token.refreshToken, 'EX', token.ttl);
-        } catch (error) {
-            throw new InternalServerErrorException('Failed to save refresh token');
-        }
+        await this.handleRedisOperation(() => this.redisClient.set(key, token.refreshToken, 'EX', token.ttl));
     }
 
     async findAccessTokenByUserId(userId: string): Promise<IJwtAccessToken | null> {
-        try {
-            const key = `access_token:${userId}`;
-            const accessToken = await this.redisClient.get(key);
-            if (!accessToken) return null;
-
-            return new JwtAccessTokenEntity(userId, 0, accessToken, new Date(), new Date());
-        } catch (error) {
-            throw new InternalServerErrorException('Failed to retrieve access token');
-        }
+        const key = `access_token:${userId}`;
+        const accessToken = await this.handleRedisOperation(() => this.redisClient.get(key));
+        return accessToken ? new JwtAccessTokenEntity(userId, 0, accessToken, new Date(), new Date()) : null;
     }
 
     async findRefreshTokenByUserId(userId: string): Promise<IJwtRefreshToken | null> {
-        try {
-            const key = `refresh_token:${userId}`;
-            const refreshToken = await this.redisClient.get(key);
-            if (!refreshToken) return null;
-
-            return new JwtRefreshTokenEntity(userId, 0, refreshToken, new Date(), new Date());
-        } catch (error) {
-            throw new InternalServerErrorException('Failed to retrieve refresh token');
-        }
+        const key = `refresh_token:${userId}`;
+        const refreshToken = await this.handleRedisOperation(() => this.redisClient.get(key));
+        return refreshToken ? new JwtRefreshTokenEntity(userId, 0, refreshToken, new Date(), new Date()) : null;
     }
 
     async removeAccessToken(userId: string): Promise<void> {
-        try {
-            const key = `access_token:${userId}`;
-            await this.redisClient.del(key);
-        } catch (error) {
-            throw new InternalServerErrorException('Failed to delete access token');
-        }
+        const key = `access_token:${userId}`;
+        await this.handleRedisOperation(() => this.redisClient.del(key));
     }
 
     async removeRefreshToken(userId: string): Promise<void> {
-        try {
-            const key = `refresh_token:${userId}`;
-            await this.redisClient.del(key);
-        } catch (error) {
-            throw new InternalServerErrorException('Failed to delete refresh token');
-        }
+        const key = `refresh_token:${userId}`;
+        await this.handleRedisOperation(() => this.redisClient.del(key));
     }
 }

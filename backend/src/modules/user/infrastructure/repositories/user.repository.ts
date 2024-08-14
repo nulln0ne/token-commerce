@@ -13,41 +13,34 @@ export class UserRepository implements IUserRepository {
         private readonly ormRepository: Repository<UserOrmEntity>,
     ) {}
 
-    async getAllUsers(): Promise<User[]> {
+    private async handleDatabaseOperation<T>(operation: () => Promise<T>): Promise<T | null> {
         try {
-            const ormEntities = await this.ormRepository.find();
-            return ormEntities.map((ormEntity) => UserOrmMapper.toDomainEntity(ormEntity));
+            return await operation();
         } catch (error) {
-            throw new InternalServerErrorException('Failed to retrieve users');
+            console.error('Database operation failed:', error);
+            throw new InternalServerErrorException('Database operation failed');
         }
+    }
+
+    async getAllUsers(): Promise<User[]> {
+        const ormEntities = await this.handleDatabaseOperation(() => this.ormRepository.find());
+        return ormEntities.map(UserOrmMapper.toDomainEntity);
     }
 
     async save(user: User): Promise<void> {
-        try {
-            const ormEntity = UserOrmMapper.toOrmEntity(user);
-            await this.ormRepository.save(ormEntity);
-        } catch (error) {
-            throw new InternalServerErrorException('Failed to save user');
-        }
+        const ormEntity = UserOrmMapper.toOrmEntity(user);
+        await this.handleDatabaseOperation(() => this.ormRepository.save(ormEntity));
     }
 
     async findUserByWalletAddress(walletAddress: string): Promise<User | null> {
-        try {
-            const ormEntity = await this.ormRepository.findOne({
-                where: { walletAddress: walletAddress.toLowerCase() },
-            });
-            return ormEntity ? UserOrmMapper.toDomainEntity(ormEntity) : null;
-        } catch (error) {
-            throw new InternalServerErrorException('Failed to find user by wallet address');
-        }
+        const ormEntity = await this.handleDatabaseOperation(() =>
+            this.ormRepository.findOne({ where: { walletAddress: walletAddress.toLowerCase() } }),
+        );
+        return ormEntity ? UserOrmMapper.toDomainEntity(ormEntity) : null;
     }
 
     async findUserByUserId(userId: string): Promise<User | null> {
-        try {
-            const ormEntity = await this.ormRepository.findOne({ where: { userId: userId } });
-            return ormEntity ? UserOrmMapper.toDomainEntity(ormEntity) : null;
-        } catch (error) {
-            throw new InternalServerErrorException('Failed to find user by user ID');
-        }
+        const ormEntity = await this.handleDatabaseOperation(() => this.ormRepository.findOne({ where: { userId } }));
+        return ormEntity ? UserOrmMapper.toDomainEntity(ormEntity) : null;
     }
 }
