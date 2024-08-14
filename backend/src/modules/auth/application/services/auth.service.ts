@@ -1,10 +1,4 @@
-import {
-    Injectable,
-    Inject,
-    InternalServerErrorException,
-    UnauthorizedException,
-    ForbiddenException,
-} from '@nestjs/common';
+import { Injectable, Inject, InternalServerErrorException, UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import { IJwtRepository, INonceRepository, JwtAccessTokenEntity, JwtRefreshTokenEntity } from '../../domain';
 import { JwtService } from '@nestjs/jwt';
 import { JwtConfigService } from '@app/config';
@@ -12,7 +6,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { ethers } from 'ethers';
 import { UserService } from 'src/modules/user/application';
 import { CreateUserDto } from 'src/modules/user/application';
-import { NonceEntity } from '../../domain';
 
 @Injectable()
 export class AuthService {
@@ -26,41 +19,29 @@ export class AuthService {
         private readonly userService: UserService,
     ) {}
 
-    private generateAccessToken(userId: string): JwtAccessTokenEntity {
-        try {
-            const payload = { sub: userId };
-            const jwtConfig = this.jwtConfigService.createJwtOptions();
-            const ttl = Number(jwtConfig.signOptions.expiresIn);
-            const accessToken = this.jwtService.sign(payload, {
-                expiresIn: ttl,
-                secret: jwtConfig.secret,
-            });
+    private generateToken(userId: string, expiresIn: number, secret: string | Buffer): string {
+        const payload = { sub: userId };
+        const secretString = typeof secret === 'string' ? secret : secret.toString('utf-8');
+        return this.jwtService.sign(payload, { expiresIn, secret: secretString });
+    }
 
-            return new JwtAccessTokenEntity(userId, ttl, accessToken);
-        } catch (error) {
-            throw new InternalServerErrorException('Failed to generate access token');
-        }
+    private generateAccessToken(userId: string): JwtAccessTokenEntity {
+        const jwtConfig = this.jwtConfigService.createJwtOptions();
+        const ttl = Number(jwtConfig.signOptions.expiresIn);
+        const accessToken = this.generateToken(userId, ttl, jwtConfig.secret);
+        return new JwtAccessTokenEntity(userId, ttl, accessToken, new Date(), new Date());
     }
 
     private generateRefreshToken(userId: string): JwtRefreshTokenEntity {
-        try {
-            const payload = { sub: userId };
-            const refreshTokenConfig = this.jwtConfigService.getRefreshTokenConfig();
-            const ttl = Number(refreshTokenConfig.signOptions.expiresIn);
-            const refreshToken = this.jwtService.sign(payload, {
-                expiresIn: ttl,
-                secret: refreshTokenConfig.secret,
-            });
-
-            return new JwtRefreshTokenEntity(userId, ttl, refreshToken);
-        } catch (error) {
-            throw new InternalServerErrorException('Failed to generate refresh token');
-        }
+        const refreshTokenConfig = this.jwtConfigService.getRefreshTokenConfig();
+        const ttl = Number(refreshTokenConfig.signOptions.expiresIn);
+        const refreshToken = this.generateToken(userId, ttl, refreshTokenConfig.secret);
+        return new JwtRefreshTokenEntity(userId, ttl, refreshToken, new Date(), new Date());
     }
 
     async generateNonce(walletAddress: string): Promise<string> {
         const nonce = uuidv4();
-        const nonceEntity = new NonceEntity(walletAddress, nonce);
+        const nonceEntity = { walletAddress, nonce, createdAt: new Date() };
         await this.nonceRepository.saveNonce(nonceEntity);
         return nonce;
     }
@@ -74,7 +55,7 @@ export class AuthService {
         try {
             const recoveredAddress = ethers.utils.verifyMessage(nonceEntity.nonce, signature);
             if (recoveredAddress.toLowerCase() === walletAddress.toLowerCase()) {
-                await this.nonceRepository.deleteNonce(walletAddress);
+                await this.nonceRepository.removeNonce(walletAddress);
                 return true;
             } else {
                 return false;
@@ -85,41 +66,33 @@ export class AuthService {
     }
 
     async loginUser(userId: string) {
-        try {
-            await this.logoutUser(userId);
-
-            const accessTokenEntity = this.generateAccessToken(userId);
-            const refreshTokenEntity = this.generateRefreshToken(userId);
-
-            await this.jwtRepository.saveAccessToken(accessTokenEntity);
-            await this.jwtRepository.saveRefreshToken(refreshTokenEntity);
-
-            return {
-                accessToken: accessTokenEntity.accessToken,
-                refreshToken: refreshTokenEntity.refreshToken,
-            };
-        } catch (error) {
-            throw new InternalServerErrorException('Login failed');
+        if (!userId) {
+            throw new InternalServerErrorException('User ID is undefined');
         }
+
+        await this.logoutUser(userId);
+
+        const accessTokenEntity = this.generateAccessToken(userId);
+        const refreshTokenEntity = this.generateRefreshToken(userId);
+
+        await this.jwtRepository.saveAccessToken(accessTokenEntity);
+        await this.jwtRepository.saveRefreshToken(refreshTokenEntity);
+
+        return {
+            accessToken: accessTokenEntity.accessToken,
+            refreshToken: refreshTokenEntity.refreshToken,
+        };
     }
 
     async logoutUser(userId: string) {
-        try {
-            const accessTokens = await this.jwtRepository.findAccessTokensByUserId(userId);
-            const refreshTokens = await this.jwtRepository.findRefreshTokensByUserId(userId);
-
-            await Promise.all([
-                ...accessTokens.map((token) => this.jwtRepository.removeAccessToken(token.accessToken)),
-                ...refreshTokens.map((token) => this.jwtRepository.removeRefreshToken(token.refreshToken)),
-            ]);
-        } catch (error) {
-            throw new InternalServerErrorException('Logout failed');
-        }
+        await this.jwtRepository.removeAccessToken(userId);
+        await this.jwtRepository.removeRefreshToken(userId);
     }
 
-    async validateToken(token: string): Promise<any> {
+    async validateToken(token: string, secret: string | Buffer): Promise<any> {
+        const secretString = typeof secret === 'string' ? secret : secret.toString('utf-8');
         try {
-            return await this.jwtService.verifyAsync(token);
+            return await this.jwtService.verifyAsync(token, { secret: secretString });
         } catch (err) {
             throw new UnauthorizedException('Invalid token');
         }
@@ -137,6 +110,11 @@ export class AuthService {
 
         if (!user) {
             user = await this.userService.createUser(createUserDto);
+            user = await this.userService.findUserByWalletAddress(walletAddress);
+        }
+
+        if (!user || !user.userId) {
+            throw new InternalServerErrorException('User ID not found after user creation or lookup');
         }
 
         return this.loginUser(user.userId);
@@ -144,18 +122,20 @@ export class AuthService {
 
     async refreshTokens(refreshToken: string) {
         try {
-            const decoded = await this.jwtService.verifyAsync(refreshToken);
+            const refreshTokenConfig = this.jwtConfigService.getRefreshTokenConfig();
+            const decoded = await this.validateToken(refreshToken, refreshTokenConfig.secret);
+
             const userId = decoded.sub;
 
-            const storedRefreshToken = await this.jwtRepository.findRefreshToken(refreshToken);
-            if (!storedRefreshToken || storedRefreshToken.userId !== userId) {
+            const storedRefreshToken = await this.jwtRepository.findRefreshTokenByUserId(userId);
+            if (!storedRefreshToken || storedRefreshToken.refreshToken !== refreshToken) {
                 throw new ForbiddenException('Invalid refresh token');
             }
 
-            await this.jwtRepository.removeRefreshToken(refreshToken);
+            await this.jwtRepository.removeRefreshToken(userId);
             return this.loginUser(userId);
         } catch (err) {
-            throw new ForbiddenException('Invalid refresh token');
+            throw new UnauthorizedException('Invalid token');
         }
     }
 

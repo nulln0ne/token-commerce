@@ -1,7 +1,7 @@
-import { Controller, Body, Post } from '@nestjs/common';
+import { Controller, Body, Post, UseGuards, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from '../../application';
 import { CreateUserDto } from 'src/modules/user/application';
-import { UnauthorizedException } from '@nestjs/common';
+import { JwtAccessGuard } from '../../application';
 
 @Controller('auth')
 export class AuthController {
@@ -14,9 +14,13 @@ export class AuthController {
 
     @Post('refresh')
     async refresh(@Body('refreshToken') refreshToken: string) {
+        if (!refreshToken) {
+            throw new UnauthorizedException('Refresh token is required');
+        }
         return this.authService.refreshTokens(refreshToken);
     }
 
+    @UseGuards(JwtAccessGuard)
     @Post('logout')
     async logout(@Body('walletAddress') walletAddress: string) {
         return this.authService.logout(walletAddress);

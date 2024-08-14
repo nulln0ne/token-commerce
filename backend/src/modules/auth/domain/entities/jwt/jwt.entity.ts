@@ -17,9 +17,7 @@ export class JwtTokenEntity implements IJwtToken {
 export class JwtAccessTokenEntity extends JwtTokenEntity implements IJwtAccessToken {
     accessToken: string;
 
-    constructor(userId: string, ttl: number, accessToken: string) {
-        const createdAt = new Date();
-        const updatedAt = new Date();
+    constructor(userId: string, ttl: number, accessToken: string, createdAt: Date, updatedAt: Date) {
         super(userId, ttl, createdAt, updatedAt);
         this.accessToken = accessToken;
     }
@@ -28,9 +26,7 @@ export class JwtAccessTokenEntity extends JwtTokenEntity implements IJwtAccessTo
 export class JwtRefreshTokenEntity extends JwtTokenEntity implements IJwtRefreshToken {
     refreshToken: string;
 
-    constructor(userId: string, ttl: number, refreshToken: string) {
-        const createdAt = new Date();
-        const updatedAt = new Date();
+    constructor(userId: string, ttl: number, refreshToken: string, createdAt: Date, updatedAt: Date) {
         super(userId, ttl, createdAt, updatedAt);
         this.refreshToken = refreshToken;
     }

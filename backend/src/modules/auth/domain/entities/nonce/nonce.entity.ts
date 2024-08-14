@@ -5,9 +5,9 @@ export class NonceEntity implements INonce {
     nonce: string;
     createdAt: Date;
 
-    constructor(walletAddress: string, nonce: string) {
+    constructor(walletAddress: string, nonce: string, createdAt?: Date) {
         this.walletAddress = walletAddress;
         this.nonce = nonce;
-        this.createdAt = new Date();
+        this.createdAt = createdAt;
     }
 }
