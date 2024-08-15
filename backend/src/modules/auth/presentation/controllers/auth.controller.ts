@@ -33,6 +33,6 @@ export class AuthController {
         }
 
         const nonce = await this.authService.generateNonce(walletAddress);
-        return { nonce, message: `Please sign the message: ${nonce}` };
+        return { nonce: `${nonce}` };
     }
 }

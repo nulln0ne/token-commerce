@@ -1,64 +1,67 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useConnectWallet } from '@web3-onboard/react';
 import { Button } from '@mui/joy';
-import useAuthStore from '@/app/stores/useAuth.store';
+import { truncateString } from '@/shared/lib/truncateString';
+import { ethers } from 'ethers';
+import axios from 'axios';
 
 const ConnectWalletButton: React.FC = () => {
     const [{ wallet, connecting }, connect, disconnect] = useConnectWallet();
-    const { walletAddress, setWalletAddress, setJwtAccessToken, setJwtRefreshToken, clearAuthState } = useAuthStore();
-
-    useEffect(() => {
-        const storedWalletAddress = localStorage.getItem('walletAddress');
-        if (storedWalletAddress) {
-            setWalletAddress(storedWalletAddress);
-        }
-    }, [setWalletAddress]);
-
-    const handleConnectWallet = async () => {
-        try {
-            const connectedWallets = await connect();
-            if (connectedWallets.length > 0) {
-                const address = connectedWallets[0].accounts[0].address;
-                setWalletAddress(address);
-                localStorage.setItem('walletAddress', address);
-                const jwtAccessToken = 'yourAccessToken';
-                const jwtRefreshToken = 'yourRefreshToken';
-                setJwtAccessToken(jwtAccessToken);
-                setJwtRefreshToken(jwtRefreshToken);
-                localStorage.setItem('jwtAccessToken', jwtAccessToken);
-                localStorage.setItem('jwtRefreshToken', jwtRefreshToken);
-            }
-            console.log('Connected wallets:', connectedWallets);
-        } catch (error) {
-            console.error('Failed to connect wallet:', error);
-        }
-    };
-
-    const handleDisconnectWallet = async () => {
-        if (wallet) {
-            await disconnect(wallet);
-            clearAuthState();
-            localStorage.removeItem('walletAddress');
-            localStorage.removeItem('jwtAccessToken');
-            localStorage.removeItem('jwtRefreshToken');
-        }
-    };
 
     const handleButtonClick = async () => {
-        if (wallet || walletAddress) {
-            await handleDisconnectWallet();
+        if (wallet) {
+            await disconnect({ label: wallet.label });
         } else {
-            await handleConnectWallet();
-        }
-    };
+            const connectedWallet = await connect();
+            if (connectedWallet && connectedWallet[0]) {
+                const walletAddress = connectedWallet[0].accounts[0]?.address;
 
-    const truncateAddress = (address: string) => {
-        return `${address.slice(0, 4)}...${address.slice(-4)}`;
+                if (!walletAddress) {
+                    console.error('Failed to retrieve wallet address.');
+                    return;
+                }
+
+                try {
+                    console.log('Requesting nonce from the backend...');
+                    const { data: nonceResponse } = await axios.post('http://localhost:3000/auth/get-nonce', {
+                        walletAddress,
+                    });
+                    const { nonce } = nonceResponse;
+
+                    if (!nonce) {
+                        throw new Error('Nonce not received. Ensure the backend is correctly returning the nonce.');
+                    }
+
+                    const nonceMessage = `Sign this nonce: ${nonce}`;
+                    console.log(`Nonce message to sign: ${nonceMessage}`);
+
+                    console.log('Signing the nonce...');
+                    const provider = new ethers.providers.Web3Provider(connectedWallet[0].provider);
+                    const signer = provider.getSigner();
+                    const signature = await signer.signMessage(nonceMessage);
+                    console.log(`Generated signature: ${signature}`);
+
+                    console.log('Sending authentication request to the backend...');
+                    const authResponse = await axios.post('http://localhost:3000/auth', {
+                        walletAddress,
+                        signature,
+                    });
+
+                    console.log('Authentication successful:', authResponse.data);
+                } catch (error) {
+                    if (axios.isAxiosError(error)) {
+                        console.error('Error occurred during authentication:', error.response?.data || error.message);
+                    } else {
+                        console.error('Unexpected error:', (error as Error).message);
+                    }
+                }
+            }
+        }
     };
 
     return (
         <Button onClick={handleButtonClick} disabled={connecting} variant="soft" color="warning">
-            {connecting ? 'Connecting...' : walletAddress ? truncateAddress(walletAddress) : 'Connect Wallet'}
+            {connecting ? 'Connecting...' : wallet ? truncateString(wallet.accounts[0]?.address) : 'Connect Wallet'}
         </Button>
     );
 };

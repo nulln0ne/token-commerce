@@ -52,8 +52,10 @@ export class AuthService {
             throw new UnauthorizedException('Nonce not found or expired');
         }
 
+        const nonceMessage = `Sign this nonce: ${nonceEntity.nonce}`;
+
         try {
-            const recoveredAddress = ethers.utils.verifyMessage(nonceEntity.nonce, signature);
+            const recoveredAddress = ethers.utils.verifyMessage(nonceMessage, signature);
             if (recoveredAddress.toLowerCase() === walletAddress.toLowerCase()) {
                 await this.nonceRepository.removeNonce(walletAddress);
                 return true;

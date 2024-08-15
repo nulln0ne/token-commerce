@@ -3,8 +3,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { JwtModule } from '@nestjs/jwt';
-import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
+import { AuthModule } from './modules/auth/auth.module';
 import { JwtConfigService, RedisConfigService, configuration, validate, dataSourceOptions } from './config';
 import Redis from 'ioredis';
 
