@@ -1,14 +1,13 @@
-import { Module, Global, InternalServerErrorException } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RedisModule } from '@nestjs-modules/ioredis';
+import { InternalServerErrorException, Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
-import { UserModule } from './modules/user/user.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Redis } from 'ioredis';
+import { JwtConfigService, RedisConfigService, configuration, dataSourceOptions, validate } from './config';
 import { AuthModule } from './modules/auth/auth.module';
-import { JwtConfigService, RedisConfigService, configuration, validate, dataSourceOptions } from './config';
-import Redis from 'ioredis';
+import { UserModule } from './modules/user/user.module';
 
-@Global()
 @Module({
     imports: [
         ConfigModule.forRoot({
