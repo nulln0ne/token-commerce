@@ -1,0 +1,20 @@
+# Use the official Node.js image.
+FROM node:21
+
+# Set the working directory.
+WORKDIR /app
+
+# Copy package.json and pnpm-lock.yaml.
+COPY package.json pnpm-lock.yaml ./
+
+# Install dependencies using npm and pnpm.
+RUN npm install -g pnpm && pnpm install
+
+# Copy the rest of the application code.
+COPY . .
+
+# Expose the application port.
+EXPOSE 2999
+
+# Define the command to run the application.
+CMD ["pnpm", "start"]

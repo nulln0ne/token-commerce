@@ -1,7 +1,6 @@
 import { JwtAccessGuard } from 'src/modules/auth/application';
 import { Controller, Get, Param, UseGuards, InternalServerErrorException } from '@nestjs/common';
 import { UserService } from '../../application';
-
 @Controller('users')
 export class UserController {
     constructor(private readonly userService: UserService) {}
@@ -23,6 +22,18 @@ export class UserController {
             return await this.userService.findUserByUserId(userId);
         } catch (error) {
             throw new InternalServerErrorException('Failed to retrieve user');
+        }
+    }
+    @UseGuards(JwtAccessGuard)
+    @Get('balance/:walletAddress')
+    async getBalance(@Param('walletAddress') walletAddress: string) {
+        try {
+            return {
+                walletAddress,
+                balance: await this.userService.getUserBalance(walletAddress),
+            };
+        } catch (error) {
+            throw new InternalServerErrorException('Failed to retrieve user balance');
         }
     }
 }
