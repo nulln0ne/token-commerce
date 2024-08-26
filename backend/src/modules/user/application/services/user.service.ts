@@ -12,7 +12,7 @@ export class UserService {
         @Inject('IUserRepository')
         private readonly userRepository: IUserRepository,
     ) {
-        this.provider = new ethers.providers.JsonRpcProvider('<https://mainnet.infura.io/v3/792dfbd1a9674e67bde3411fe04e4af3>');
+        this.provider = new ethers.providers.JsonRpcProvider('https://mainnet.infura.io/v3/792dfbd1a9674e67bde3411fe04e4af3');
     }
 
 
@@ -57,12 +57,16 @@ export class UserService {
     }
     async getUserBalance(walletAddress: string): Promise<string> {
         try {
+            // Проверяем формат адреса
+            if (!/^0x[a-fA-F0-9]{40}$/.test(walletAddress)) {
+                throw new InternalServerErrorException('Invalid wallet address format');
+            }
+
             const balanceWei = await this.provider.getBalance(walletAddress);
-
             const balanceEther = ethers.utils.formatEther(balanceWei);
-
             return balanceEther;
         } catch (error) {
+            console.error('Error getting user balance:', error);
             throw new InternalServerErrorException('Failed to get user balance');
         }
     }

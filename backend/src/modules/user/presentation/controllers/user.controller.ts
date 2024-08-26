@@ -28,9 +28,10 @@ export class UserController {
     @Get('balance/:walletAddress')
     async getBalance(@Param('walletAddress') walletAddress: string) {
         try {
+            const balance = await this.userService.getUserBalance(walletAddress);
             return {
                 walletAddress,
-                balance: await this.userService.getUserBalance(walletAddress),
+                balance,
             };
         } catch (error) {
             throw new InternalServerErrorException('Failed to retrieve user balance');
