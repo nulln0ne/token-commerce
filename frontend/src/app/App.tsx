@@ -6,4 +6,4 @@ const App: React.FC = () => {
     return <Navbar />;
 };
 
-export default App;
+export default App;//ммммм
