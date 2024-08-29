@@ -4,11 +4,9 @@ services:
     image: postgres:latest
     container_name: token-commerce_db
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-peranum}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-18051}
-      POSTGRES_DB: ${POSTGRES_DB:-your_database}
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      POSTGRES_USER: peranum
+      POSTGRES_PASSWORD: 18051
+      POSTGRES_DB: dev
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
@@ -18,11 +16,9 @@ services:
     image: redis:latest
     container_name: redis
     environment:
-      REDIS_URL: ${REDIS_URL:-redis://localhost:6379}
+      REDIS_URL: redis://redis:6379
     volumes:
       - redis-data:/data
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
     networks:
       - app-network
 
@@ -35,16 +31,25 @@ services:
     environment:
       DATABASE_HOST: db
       DATABASE_PORT: 5432
-      DATABASE_USER: ${POSTGRES_USER:-peranum}
-      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-18051}
+      DATABASE_USER: peranum
+      DATABASE_PASSWORD: 18051
+      DATABASE_NAME: dev
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      JWT_ACCESS_SECRET: jwt-access
+      JWT_ACCESS_EXPIRATION_TIME: 3600
+      JWT_REFRESH_SECRET: jwt-refresh
+      JWT_REFRESH_EXPIRATION_TIME: 86400
     networks:
       - app-network
 
   frontend-service:
     build:
       context: ./frontend
+    depends_on:
+      - backend-service
+    ports:
+      - "3001:3001"  # Проброс порта для доступа к фронтенду из браузера
     networks:
       - app-network
 

@@ -1,6 +1,8 @@
 import { JwtAccessGuard } from 'src/modules/auth/application';
 import { Controller, Get, Param, UseGuards, InternalServerErrorException } from '@nestjs/common';
 import { UserService } from '../../application';
+import { TransactionHistoryResponse } from '../../application/interfaces/transaction-history-response.interface'; 
+
 @Controller('users')
 export class UserController {
     constructor(private readonly userService: UserService) {}
@@ -35,6 +37,18 @@ export class UserController {
             };
         } catch (error) {
             throw new InternalServerErrorException('Failed to retrieve user balance');
+        }
+    }
+    @UseGuards(JwtAccessGuard)
+    @Get('transactions/:walletAddress')
+    async getTransactionHistory(
+        @Param('walletAddress') walletAddress: string
+    ): Promise<TransactionHistoryResponse> {
+        try {
+            return await this.userService.getTransactionHistory(walletAddress);
+        } catch (error) {
+            console.error('Error retrieving transaction history:', error);
+            throw new InternalServerErrorException('Failed to retrieve transaction history');
         }
     }
 }

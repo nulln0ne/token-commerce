@@ -4,15 +4,20 @@ import { v4 as uuidv4 } from 'uuid';
 import { IUserRepository } from '../../domain';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { ethers } from 'ethers';
+import { TransactionHistoryResponse } from '../interfaces/transaction-history-response.interface'; 
 
 @Injectable()
 export class UserService {
     private readonly provider: ethers.providers.JsonRpcProvider;
+    private readonly etherscanProvider: ethers.providers.EtherscanProvider;
+
     constructor(
         @Inject('IUserRepository')
         private readonly userRepository: IUserRepository,
     ) {
         this.provider = new ethers.providers.JsonRpcProvider('https://mainnet.infura.io/v3/792dfbd1a9674e67bde3411fe04e4af3');
+        this.etherscanProvider = new ethers.providers.EtherscanProvider('homestead', 'WY46Z8ZS4AZBEQDT6K767HRCYF2MFKNRX6');
+
     }
 
 
@@ -57,7 +62,6 @@ export class UserService {
     }
     async getUserBalance(walletAddress: string): Promise<string> {
         try {
-            // Проверяем формат адреса
             if (!/^0x[a-fA-F0-9]{40}$/.test(walletAddress)) {
                 throw new InternalServerErrorException('Invalid wallet address format');
             }
@@ -68,6 +72,22 @@ export class UserService {
         } catch (error) {
             console.error('Error getting user balance:', error);
             throw new InternalServerErrorException('Failed to get user balance');
+        }
+    }
+    async getTransactionHistory(walletAddress: string): Promise<TransactionHistoryResponse> {
+        try {
+            if (!/^0x[a-fA-F0-9]{40}$/.test(walletAddress)) {
+                throw new InternalServerErrorException('Invalid wallet address format');
+            }
+
+            const transactions = await this.etherscanProvider.getHistory(walletAddress);
+            return {
+                walletAddress,
+                transactions, 
+            };
+        } catch (error) {
+            console.error('Error getting transaction history:', error);
+            throw new InternalServerErrorException('Failed to get transaction history');
         }
     }
 }
