@@ -4,7 +4,7 @@ services:
     working_dir: /app
     volumes:
       - ./frontend:/app
-    command: sh -c "npm install && npm start"
+    command: sh -c "npm install -g pnpm && pnpm install && pnpm dev"
     ports:
       - "${FRONTEND_PORT}:${FRONTEND_PORT}"
     depends_on:
@@ -15,7 +15,7 @@ services:
     working_dir: /app
     volumes:
       - ./backend:/app
-    command: sh -c "npm install && npm run start:prod"
+    command: sh -c "npm install -g pnpm && pnpm install && pnpm start"
     env_file:
       - ./backend/.env
     ports:
@@ -39,4 +39,3 @@ services:
 
 volumes:
   postgres_data:
-
