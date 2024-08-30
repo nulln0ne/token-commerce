@@ -1,0 +1,42 @@
+services:
+  frontend:
+    image: node:latest
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    command: sh -c "npm install && npm start"
+    ports:
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+    depends_on:
+      - backend
+
+  backend:
+    image: node:latest
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+    command: sh -c "npm install && npm run start:prod"
+    env_file:
+      - ./backend/.env
+    ports:
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
+
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+
+  redis:
+    image: redis:latest
+    ports:
+      - "${REDIS_PORT}:${REDIS_PORT}"
+
+volumes:
+  postgres_data:
+
