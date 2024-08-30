@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   frontend:
     image: node:latest
@@ -15,11 +17,14 @@ services:
     working_dir: /app
     volumes:
       - ./backend:/app
-    command: sh -c "npm install -g pnpm && pnpm install && pnpm start"
+    command: sh -c "npm install -g pnpm && pnpm install && pnpm run typeorm:run-migrations && pnpm start"
     env_file:
       - ./backend/.env
     ports:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
+    depends_on:
+      - postgres
+      - redis
 
   postgres:
     image: postgres:latest

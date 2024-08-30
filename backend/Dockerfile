@@ -17,4 +17,4 @@ COPY . .
 EXPOSE 3000
 
 # Define the command to run the application.
-CMD ["pnpm", "start"]
+CMD ["sh", "-c", "pnpm run typeorm:run-migrations && pnpm start"]
