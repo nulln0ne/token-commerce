@@ -3,11 +3,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserOrmEntity } from '../orm-entities/user.orm-entity';
 import { UserOrmMapper } from '../utils/user.mapper';
-import { IUserRepository } from '../../domain';
+import { UserDomain } from '../../domain';
 import { User } from '../../domain';
 
 @Injectable()
-export class UserRepository implements IUserRepository {
+export class UserRepository implements UserDomain {
     constructor(
         @InjectRepository(UserOrmEntity)
         private readonly ormRepository: Repository<UserOrmEntity>,

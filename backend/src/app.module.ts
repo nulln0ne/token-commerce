@@ -22,6 +22,7 @@ import Redis from 'ioredis';
         }),
         JwtModule.registerAsync({
             useClass: JwtConfigService,
+            global: true,
         }),
         RedisModule.forRootAsync({
             useClass: RedisConfigService,

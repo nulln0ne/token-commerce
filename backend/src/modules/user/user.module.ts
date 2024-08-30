@@ -11,10 +11,10 @@ import { AuthModule } from '../auth/auth.module';
     providers: [
         UserService,
         {
-            provide: 'IUserRepository',
+            provide: 'UserDomain',
             useClass: UserRepository,
         },
     ],
-    exports: [UserService, 'IUserRepository'],
+    exports: [UserService, 'UserDomain'],
 })
 export class UserModule {}
