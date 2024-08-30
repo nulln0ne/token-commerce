@@ -106,7 +106,29 @@ export class UserService {
                 throw new InternalServerErrorException('Invalid wallet address format');
             }
 
-            const transactions = await this.etherscanProvider.getHistory(walletAddress);
+            const contractAddress = '0xf117e28D8C9dEB52eDb3f10cFa2eA389d9873188'; 
+
+            const abi = [
+                "event Transfer(address indexed from, address indexed to, uint256 value)",
+            ];
+
+            const contract = new ethers.Contract(contractAddress, abi, this.provider);
+
+            const filter = contract.filters.Transfer(contractAddress, walletAddress);
+
+            const events = await contract.queryFilter(filter, 0, 'latest');
+
+            const transactions = await Promise.all(events.map(async (tx) => {
+                const block = await tx.getBlock();
+                return {
+                    hash: tx.transactionHash,
+                    from: tx.args?.from,
+                    to: tx.args?.to,
+                    value: ethers.utils.formatUnits(tx.args?.value.toString(), 'ether'),
+                    timestamp: block.timestamp,
+                };
+            }));
+
             return {
                 walletAddress,
                 transactions,
@@ -116,4 +138,5 @@ export class UserService {
             throw new InternalServerErrorException('Failed to get transaction history');
         }
     }
+
 }
