@@ -11,7 +11,7 @@ export class EthereumService {
     constructor(private readonly configService: ConfigService) {
         const networkEndpoint = this.configService.get<string>('NETWORK_ENDPOINT');
         const privateKey = this.configService.get<string>('DEPLOYER_PRIVATE_KEY');
-        const adminAddress = this.configService.get<string>('ADMIN_ADDRESS'); // Ensure this is set in your .env
+        const adminAddress = this.configService.get<string>('ADMIN_ADDRESS'); 
 
         if (!networkEndpoint || !privateKey || !adminAddress) {
             throw new InternalServerErrorException('Configuration for Ethereum provider is missing');
@@ -27,7 +27,6 @@ export class EthereumService {
             "function getProxyAdmin(address proxy) external view returns (address)",
         ];
 
-        // Initialize admin contract
         this.adminContract = new ethers.Contract(adminAddress, proxyAbi, this.deployer);
     }
 
