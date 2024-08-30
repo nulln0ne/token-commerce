@@ -1,6 +1,6 @@
 import { Injectable, Inject, ConflictException, InternalServerErrorException } from '@nestjs/common';
 import { User } from '../../domain';
-import { v4 as uuidv4 } from 'uuid'; 
+import { ConfigService } from '@nestjs/config';
 import { IUserRepository } from '../../domain';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { ethers } from 'ethers';
@@ -14,9 +14,10 @@ export class UserService {
     constructor(
         @Inject('IUserRepository')
         private readonly userRepository: IUserRepository,
+        private readonly configService: ConfigService, // Inject ConfigService here
     ) {
-        this.provider = new ethers.providers.JsonRpcProvider('https://mainnet.infura.io/v3/792dfbd1a9674e67bde3411fe04e4af3');
-        this.etherscanProvider = new ethers.providers.EtherscanProvider('homestead', 'WY46Z8ZS4AZBEQDT6K767HRCYF2MFKNRX6');
+        const infuraEndpoint = this.configService.get<string>('NETWORK_ENDPOINT');
+        const etherscanApiKey = this.configService.get<string>('ETHERSCAN_API_KEY');
 
     }
 
