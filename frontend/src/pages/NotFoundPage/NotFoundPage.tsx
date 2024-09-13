@@ -1,13 +1,10 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import Page from '../../shared/ui/components/Page/Page';
 
 const NotFoundPage: React.FC = () => {
     return (
-        <div>
-            <h1>404</h1>
-            <p>Page Not Found</p>
-            <Link to="/">Go to Home</Link>
-        </div>
+        <Page title="404">
+            <p>Page not found</p>
+        </Page>
     );
 };
 

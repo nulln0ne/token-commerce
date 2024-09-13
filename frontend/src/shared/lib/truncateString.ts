@@ -1,3 +1,3 @@
-export const truncateString = (string: string) => {
-    return `${string.slice(0, 4)}...${string.slice(-4)}`;
+export const truncateString = (str: string, tail: number, head: number): string => {
+    return `${str.slice(0, tail)}...${str.slice(-head)}`;
 };

@@ -1,24 +1,36 @@
 import { create } from 'zustand';
+import logger from '../../shared/lib/logger';
 
 interface AuthState {
-    wallet: string | null;
-    isAuthenticated: boolean;
     accessToken: string | null;
     refreshToken: string | null;
-    setWallet: (wallet: string) => void;
-    setAuthTokens: (accessToken: string, refreshToken: string) => void;
-    clearAuth: () => void;
+    isAuthenticated: boolean;
+    login: (accessToken: string, refreshToken: string) => void;
+    logout: () => void;
 }
 
-const useAuthStore = create<AuthState>((set) => ({
-    wallet: null,
-    isAuthenticated: false,
+export const useAuthStore = create<AuthState>((set) => ({
     accessToken: null,
     refreshToken: null,
+    isAuthenticated: false,
 
-    setWallet: (wallet) => set({ wallet }),
-    setAuthTokens: (accessToken, refreshToken) => set({ accessToken, refreshToken, isAuthenticated: true }),
-    clearAuth: () => set({ wallet: null, isAuthenticated: false, accessToken: null, refreshToken: null }),
+    login: (accessToken, refreshToken) => {
+        logger.info('Logging in user...');
+        set({
+            accessToken,
+            refreshToken,
+            isAuthenticated: true,
+        });
+        logger.info('User logged in successfully.');
+    },
+
+    logout: () => {
+        logger.info('Logging out user...');
+        set({
+            accessToken: null,
+            refreshToken: null,
+            isAuthenticated: false,
+        });
+        logger.info('User logged out successfully.');
+    },
 }));
-
-export default useAuthStore;

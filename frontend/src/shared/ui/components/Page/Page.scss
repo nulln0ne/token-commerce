@@ -1,0 +1,12 @@
+.Page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &__card {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 500px;
+    }
+}

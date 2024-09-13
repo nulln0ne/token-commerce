@@ -1,0 +1,27 @@
+.Navbar {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    gap: 2rem;
+    align-items: center;
+    padding: 1rem 0;
+    margin-bottom: 10vh;
+
+    a {
+        text-decoration: none;
+        color: #333;
+        font-weight: 500;
+        transition:
+            color 0.3s,
+            border-bottom 0.3s;
+
+        &:hover {
+            color: #007bff;
+        }
+
+        &.active-link {
+            color: #007bff;
+            border-bottom: 2px solid #007bff;
+        }
+    }
+}

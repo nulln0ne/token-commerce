@@ -1,15 +1,11 @@
 import React from 'react';
-import { RouterProvider } from '@/app/providers/RouterProvider';
-import { Web3OnboardProvider } from '@/app/providers/Web3OnboardProvider';
+import { RouterProvider } from './RouterProvider';
+import { Web3OnboardProvider } from './Web3OnboardProvider';
 
-interface ProvidersProps {
-    children: React.ReactNode;
-}
-
-const Providers: React.FC<ProvidersProps> = ({ children }) => {
+const Providers: React.FC = () => {
     return (
         <Web3OnboardProvider>
-            <RouterProvider>{children}</RouterProvider>
+            <RouterProvider />
         </Web3OnboardProvider>
     );
 };

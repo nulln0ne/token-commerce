@@ -1,22 +1,36 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { MainPage } from '@/pages/MainPage';
-import { NotFoundPage } from '@/pages/NotFoundPage';
+import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from 'react-router-dom';
+import LoggedInRoute from './LoggedInRoute';
+import LoggedOutRoute from './LoggedOutRoute';
+import MainPage from '../../../pages/MainPage/MainPage';
+import BalancePage from '../../../pages/BalancePage/BalancePage';
+import PurchasePage from '../../../pages/PurchasePage/PurchasePage';
+import NotFoundPage from '../../../pages/NotFoundPage/NotFoundPage';
+import LoggedInLayout from '../../layouts/LoggedInLayout';
+import LoggedOutLayout from '../../layouts/LoggedOutLayout';
 
-interface RouterProviderProps {
-    children?: React.ReactNode;
-}
+const router = createBrowserRouter(
+    createRoutesFromElements(
+        <>
+            <Route element={<LoggedOutLayout />}>
+                <Route element={<LoggedOutRoute />}>
+                    <Route path="/" element={<MainPage />} />
+                </Route>
+            </Route>
 
-const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
-    return (
-        <Router>
-            <Routes>
-                <Route path="/" element={<MainPage />} />
-                <Route path="*" element={<NotFoundPage />} />
-            </Routes>
-            {children}
-        </Router>
-    );
+            <Route element={<LoggedInLayout />}>
+                <Route element={<LoggedInRoute />}>
+                    <Route path="/balance" element={<BalancePage />} />
+                    <Route path="/purchase" element={<PurchasePage />} />
+                </Route>
+            </Route>
+
+            <Route path="*" element={<NotFoundPage />} />
+        </>
+    )
+);
+
+const RouterProviderWrapper: React.FC = () => {
+    return <RouterProvider router={router} />;
 };
 
-export default RouterProvider;
+export default RouterProviderWrapper;

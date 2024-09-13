@@ -2,9 +2,14 @@ import { init } from '@web3-onboard/react';
 import injectedModule from '@web3-onboard/injected-wallets';
 import metamaskSDK from '@web3-onboard/metamask';
 
-// const INFURA_KEY = '1750a724e1f7452d8c6f90b81fdee533'
+interface EthereumSepolia {
+    id: number;
+    token: string;
+    label: string;
+    rpcUrl: string;
+}
 
-const ethereumSepolia = {
+const ethereumSepolia: EthereumSepolia = {
     id: 11155111,
     token: 'ETH',
     label: 'Sepolia',
@@ -14,9 +19,6 @@ const ethereumSepolia = {
 const metamaskSDKWallet = metamaskSDK({
     options: {
         extensionOnly: false,
-        dappMetadata: {
-            name: 'Demo Web3Onboard',
-        },
     },
 });
 
@@ -26,11 +28,6 @@ const wallets = [injectedModule(), metamaskSDKWallet];
 const web3Onboard = init({
     wallets,
     chains,
-    appMetadata: {
-        name: 'Web3-Onboard Demo',
-        icon: '<svg>App Icon</svg>',
-        description: 'A demo of Web3-Onboard.',
-    },
 });
 
 export type Web3OnboardType = ReturnType<typeof init>;

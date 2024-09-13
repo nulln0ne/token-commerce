@@ -1,9 +1,8 @@
 import React from 'react';
-import { Navbar } from '@/widgets/Navbar';
-import '@/shared/ui/global.scss';
+import Providers from './providers/Providers';
 
 const App: React.FC = () => {
-    return <Navbar />;
+    return <Providers />;
 };
 
-export default App;//ммммм
+export default App;
