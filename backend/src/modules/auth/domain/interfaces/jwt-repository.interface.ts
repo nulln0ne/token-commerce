@@ -3,8 +3,8 @@ import { IJwtAccessToken, IJwtRefreshToken } from '../entities/jwt/jwt-entity.in
 export interface IJwtRepository {
     saveAccessToken(token: IJwtAccessToken): Promise<void>;
     saveRefreshToken(token: IJwtRefreshToken): Promise<void>;
-    findAccessTokenByUserId(userId: string): Promise<IJwtAccessToken | null>;
-    findRefreshTokenByUserId(userId: string): Promise<IJwtRefreshToken | null>;
-    removeAccessToken(userId: string): Promise<void>;
-    removeRefreshToken(userId: string): Promise<void>;
+    findAccessTokenById(id: number): Promise<IJwtAccessToken | null>;
+    findRefreshTokenById(id: number): Promise<IJwtRefreshToken | null>;
+    removeAccessToken(id: number): Promise<void>;
+    removeRefreshToken(id: number): Promise<void>;
 }

@@ -1,11 +1,15 @@
 import { Controller, Body, Post, UseGuards, UnauthorizedException } from '@nestjs/common';
-import { AuthService } from '../../application';
-import { CreateUserDto } from 'src/modules/user/application';
-import { JwtAccessGuard } from '../../application';
+import { AuthenticationService } from '../../application/services/authentication.service';  // Updated import
+import { CreateUserDto } from 'src/modules/user/application/dtos/create-user.dto';
+import { JwtAccessGuard } from '../../application/guards/jwt-access.guard';  // Updated import
+import { NonceService } from '../../application/services/nonce.service';
 
 @Controller('auth')
 export class AuthController {
-    constructor(private readonly authService: AuthService) {}
+    constructor(private readonly authService: AuthenticationService,
+                private readonly nonceService: NonceService
+    ) {}
+
 
     @Post()
     async authenticate(@Body() createUserDto: CreateUserDto, @Body('signature') signature: string) {
@@ -22,8 +26,8 @@ export class AuthController {
 
     @UseGuards(JwtAccessGuard)
     @Post('logout')
-    async logout(@Body('walletAddress') walletAddress: string) {
-        return this.authService.logout(walletAddress);
+    async logout(@Body('walletAddress') id: number) {
+        return this.authService.logoutUser(id);
     }
 
     @Post('get-nonce')
@@ -32,7 +36,7 @@ export class AuthController {
             throw new UnauthorizedException('Wallet address is required');
         }
 
-        const nonce = await this.authService.generateNonce(walletAddress);
+        const nonce = await this.nonceService.generateNonce(walletAddress);
         return { nonce: `${nonce}` };
     }
 }

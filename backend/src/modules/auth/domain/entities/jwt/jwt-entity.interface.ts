@@ -1,5 +1,5 @@
 export interface IJwtToken {
-    userId: string;
+    id: number;
     ttl: number;
     createdAt: Date;
     updatedAt: Date;

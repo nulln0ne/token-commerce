@@ -2,10 +2,10 @@ import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeor
 
 @Entity('users')
 export class UserOrmEntity {
-    @PrimaryGeneratedColumn('uuid')
-    userId: string;
+    @PrimaryGeneratedColumn()
+    id: number;
 
-    @Column()
+    @Column({ unique: true })
     walletAddress: string;
 
     @CreateDateColumn()

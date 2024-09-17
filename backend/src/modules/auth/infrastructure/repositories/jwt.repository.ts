@@ -18,40 +18,48 @@ export class JwtRepository implements IJwtRepository {
     }
 
     async saveAccessToken(token: IJwtAccessToken): Promise<void> {
-        const key = `access_token:${token.userId}`;
-        if (!token.userId) {
+        if (token.id === undefined || token.id === null) {
             throw new InternalServerErrorException('User ID is undefined while saving access token');
         }
-        await this.handleRedisOperation(() => this.redisClient.set(key, token.accessToken, 'EX', token.ttl));
+        const key = `access_token:${token.id}`;
+        await this.handleRedisOperation(() =>
+            this.redisClient.set(key, token.accessToken, 'EX', token.ttl),
+        );
     }
 
     async saveRefreshToken(token: IJwtRefreshToken): Promise<void> {
-        const key = `refresh_token:${token.userId}`;
-        if (!token.userId) {
+        if (token.id === undefined || token.id === null) {
             throw new InternalServerErrorException('User ID is undefined while saving refresh token');
         }
-        await this.handleRedisOperation(() => this.redisClient.set(key, token.refreshToken, 'EX', token.ttl));
+        const key = `refresh_token:${token.id}`;
+        await this.handleRedisOperation(() =>
+            this.redisClient.set(key, token.refreshToken, 'EX', token.ttl),
+        );
     }
 
-    async findAccessTokenByUserId(userId: string): Promise<IJwtAccessToken | null> {
-        const key = `access_token:${userId}`;
+    async findAccessTokenById(id: number): Promise<IJwtAccessToken | null> {
+        const key = `access_token:${id}`;
         const accessToken = await this.handleRedisOperation(() => this.redisClient.get(key));
-        return accessToken ? new JwtAccessTokenEntity(userId, 0, accessToken, new Date(), new Date()) : null;
+        return accessToken
+            ? new JwtAccessTokenEntity(id, 0, accessToken, new Date(), new Date())
+            : null;
     }
 
-    async findRefreshTokenByUserId(userId: string): Promise<IJwtRefreshToken | null> {
-        const key = `refresh_token:${userId}`;
+    async findRefreshTokenById(id: number): Promise<IJwtRefreshToken | null> {
+        const key = `refresh_token:${id}`;
         const refreshToken = await this.handleRedisOperation(() => this.redisClient.get(key));
-        return refreshToken ? new JwtRefreshTokenEntity(userId, 0, refreshToken, new Date(), new Date()) : null;
+        return refreshToken
+            ? new JwtRefreshTokenEntity(id, 0, refreshToken, new Date(), new Date())
+            : null;
     }
 
-    async removeAccessToken(userId: string): Promise<void> {
-        const key = `access_token:${userId}`;
+    async removeAccessToken(id: number): Promise<void> {
+        const key = `access_token:${id}`;
         await this.handleRedisOperation(() => this.redisClient.del(key));
     }
 
-    async removeRefreshToken(userId: string): Promise<void> {
-        const key = `refresh_token:${userId}`;
+    async removeRefreshToken(id: number): Promise<void> {
+        const key = `refresh_token:${id}`;
         await this.handleRedisOperation(() => this.redisClient.del(key));
     }
 }

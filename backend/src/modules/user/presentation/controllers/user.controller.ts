@@ -19,9 +19,9 @@ export class UserController {
 
     @UseGuards(JwtAccessGuard)
     @Get(':userId')
-    async findOne(@Param('userId') userId: string) {
+    async findOne(@Param('userId') id: number) {
         try {
-            return await this.userService.findUserByUserId(userId);
+            return await this.userService.findUserByUserId(id);
         } catch (error) {
             throw new InternalServerErrorException('Failed to retrieve user');
         }
