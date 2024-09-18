@@ -8,7 +8,7 @@ import { TokenService } from './application/services/token.service';
 import { UserModule } from '../user/user.module'; 
 
 @Module({
-  imports: [forwardRef(() => UserModule)], 
+  imports: [ forwardRef(() => UserModule)], 
   controllers: [AuthController],
   providers: [
     AuthenticationService,  

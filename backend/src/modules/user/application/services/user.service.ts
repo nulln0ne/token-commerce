@@ -1,4 +1,4 @@
-  import {Injectable,} from '@nestjs/common';
+  import { Injectable } from '@nestjs/common';
   import { CreateUserDto } from '../dtos/create-user.dto';
   import { TransactionHistoryResponse } from 'src/modules/blockchain-eth';
   import { UserOrmEntity } from '../../infrastructure';

@@ -7,8 +7,9 @@ import { UserDomain } from './domain/user.domain';
 import { BlockchainEthModule } from '../blockchain-eth/blockchain-eth.module';
 import { AuthModule } from '../auth/auth.module';  
 
+
 @Module({
-    imports: [TypeOrmModule.forFeature([UserOrmEntity]),BlockchainEthModule,forwardRef(() => AuthModule),],
+    imports: [TypeOrmModule.forFeature([UserOrmEntity]),BlockchainEthModule, forwardRef(() => AuthModule)],
     controllers: [UserController],
     providers: [UserService, UserRepository, UserDomain],
     exports: [UserService],

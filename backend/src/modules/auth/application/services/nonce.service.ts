@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable,UnauthorizedException } from '@nestjs/common';
 import {  NonceRepository } from '../../infrastructure';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -9,7 +9,7 @@ export class NonceService {
     private readonly nonceRepository: NonceRepository,
   ) {}
 
-  async generateNonce(walletAddress: string): Promise<string> {
+  async generateNonce(walletAddress: string, refreshToken?: string): Promise<string> {
     const nonce = uuidv4();
     const nonceEntity = { walletAddress, nonce, createdAt: new Date() };
     await this.nonceRepository.saveNonce(nonceEntity);

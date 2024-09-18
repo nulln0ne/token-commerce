@@ -1,12 +1,11 @@
 import { Module, Global } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { RedisModule } from '@nestjs-modules/ioredis';
+import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
-import { JwtConfigService, RedisConfigService, configuration, validate, dataSourceOptions } from './config';
-import { JwtConfigModule } from './config/jwt/jwt-congig.module';
+import { JwtConfigService, configuration, validate, dataSourceOptions } from './config';
+import { JwtConfigModule } from './config/jwt/jwt-config.module';
 import { RedisConfigModule } from './config/redis/redis-config.module';
 
 @Global()
@@ -24,9 +23,6 @@ import { RedisConfigModule } from './config/redis/redis-config.module';
         JwtModule.registerAsync({
             useClass: JwtConfigService,
             global: true,
-        }),
-        RedisModule.forRootAsync({
-            useClass: RedisConfigService,
         }),
         JwtConfigModule,
         UserModule,
