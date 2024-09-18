@@ -1,10 +1,11 @@
 import { Injectable, InternalServerErrorException, Inject } from '@nestjs/common';
 import { INonce } from '../../domain/entities/nonce/nonce-entity.interface';
+import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
 
 @Injectable()
 export class NonceRepository  {
-    constructor(@Inject('REDIS_CLIENT') private readonly redisClient: Redis) {}
+    constructor(@InjectRedis() private readonly redisClient: Redis) {}  
 
     private async handleRedisOperation<T>(operation: () => Promise<T>): Promise<T | null> {
         try {
