@@ -1,8 +1,9 @@
-import { ConflictException, InternalServerErrorException } from '@nestjs/common';
+import { ConflictException, InternalServerErrorException,Injectable } from '@nestjs/common';
 import { UserOrmEntity } from '../infrastructure';
 import { UserRepository } from '../infrastructure';
 import { CreateUserDto } from '../application';
 
+@Injectable()
 export class UserDomain {
     
     constructor(private readonly userRepository: UserRepository) {}
@@ -13,16 +14,13 @@ export class UserDomain {
             await this.userRepository.findUserByWalletAddress(
               createUserDto.walletAddress,
             );
-    
           if (existingUser) {
             throw new ConflictException(
               'User with this wallet address already exists',
             );
           }
-    
           const newUser = new UserOrmEntity();
           newUser.walletAddress = createUserDto.walletAddress.toLowerCase();
-    
           await this.userRepository.save(newUser);
           return newUser;
         } catch (error) {

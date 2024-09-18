@@ -24,8 +24,9 @@ export class UserRepository {
     }
 
     async save(user: UserOrmEntity): Promise<void> {
+        user.walletAddress = user.walletAddress.toLowerCase();
         await this.handleDatabaseOperation(() => this.ormRepository.save(user));
-    }
+        }
 
     async findUserByWalletAddress(walletAddress: string): Promise<UserOrmEntity | null> {
         return this.handleDatabaseOperation(() =>

@@ -8,18 +8,18 @@ import { JwtConfigService } from '../../config/jwt';
 import { SignatureService } from './application/services/signature.service';
 import { JwtAccessGuard } from './application';
 import { TokenService } from './application/services/token.service';
-import { UserModule } from '../user/user.module'; // Import UserModule to access UserService
+import { UserModule } from '../user/user.module'; 
 
 @Module({
   imports: [
-    forwardRef(() => UserModule), // Handle circular dependencies
+    forwardRef(() => UserModule), 
     JwtModule.registerAsync({
       useClass: JwtConfigService,
     }),
   ],
   controllers: [AuthController],
   providers: [
-    AuthenticationService,  // Make sure AuthService is provided
+    AuthenticationService,  
     NonceService,
     SignatureService,
     TokenService,

@@ -1,10 +1,5 @@
-import {
-  Injectable,
-} from '@nestjs/common';
-import {
-  JwtAccessTokenEntity,
-  JwtRefreshTokenEntity,
-} from '../../domain';
+import {Injectable,} from '@nestjs/common';
+import {JwtAccessTokenEntity,JwtRefreshTokenEntity,} from '../../domain';
 import { JwtService } from '@nestjs/jwt';
 import { JwtConfigService } from '@app/config';
 

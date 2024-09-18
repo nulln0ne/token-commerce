@@ -1,10 +1,4 @@
-import {
-  Injectable,
-  Inject,
-  InternalServerErrorException,
-  UnauthorizedException,
-  ForbiddenException,
-} from '@nestjs/common';
+import {Injectable,Inject,InternalServerErrorException,UnauthorizedException,ForbiddenException,} from '@nestjs/common';
 import { IJwtRepository } from '../../domain';
 import { UserService } from 'src/modules/user/application';
 import { CreateUserDto } from 'src/modules/user/application';
@@ -16,7 +10,6 @@ export class AuthenticationService {
   constructor(
     private readonly tokenService: TokenService,
     private readonly signatureService: SignatureService,
-    
     private readonly userService: UserService,
     @Inject('IJwtRepository')
     private readonly jwtRepository: IJwtRepository,
@@ -37,13 +30,11 @@ export class AuthenticationService {
 
     if (!user) {
       user = await this.userService.createUser(createUserDto);
-      user = await this.userService.findUserByWalletAddress(walletAddress);
-    }
-
-    if (!user || user.id === undefined || user.id === null) {
-      throw new InternalServerErrorException(
-        'User ID not found after user creation or lookup',
-      );
+      if (!user || user.id === undefined || user.id === null) {
+        throw new InternalServerErrorException(
+          'User creation failed',
+        );
+      }
     }
 
     return this.loginUser(user.id);
