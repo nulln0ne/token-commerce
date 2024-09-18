@@ -1,6 +1,6 @@
   import {Injectable,} from '@nestjs/common';
   import { CreateUserDto } from '../dtos/create-user.dto';
-  import { TransactionHistoryResponse } from '../interfaces/transaction-history-response.interface';
+  import { TransactionHistoryResponse } from 'src/modules/blockchain-eth';
   import { UserOrmEntity } from '../../infrastructure';
   import { UserDomain } from '../../domain/user.domain';
   import { BlockchainEthService } from 'src/modules/blockchain-eth/application/blockchain-eth.service';
