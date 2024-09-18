@@ -2,7 +2,6 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserOrmEntity } from '../orm-entities/user.orm-entity';
-import { User } from '../../domain/entities/user.entity';
 
 @Injectable()
 export class UserRepository {
