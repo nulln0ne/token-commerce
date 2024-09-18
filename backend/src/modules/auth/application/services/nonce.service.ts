@@ -1,13 +1,12 @@
-import { Injectable, Inject } from '@nestjs/common';
-import {  INonceRepository } from '../../domain';
+import { Injectable } from '@nestjs/common';
+import {  NonceRepository } from '../../infrastructure';
 import { v4 as uuidv4 } from 'uuid';
 
 
 @Injectable()
 export class NonceService {
   constructor(
-    @Inject('INonceRepository')
-    private readonly nonceRepository: INonceRepository,
+    private readonly nonceRepository: NonceRepository,
   ) {}
 
   async generateNonce(walletAddress: string): Promise<string> {

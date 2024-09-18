@@ -1,5 +1,5 @@
 import { Injectable, CanActivate, ExecutionContext, UnauthorizedException, ForbiddenException } from '@nestjs/common';
-import { TokenService } from '../services/token.service';
+import { TokenService } from 'src/modules/auth/application';
 import { Request } from 'express';
 import { JwtConfigService } from '@app/config';
 

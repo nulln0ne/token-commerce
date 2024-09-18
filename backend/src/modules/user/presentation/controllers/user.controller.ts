@@ -1,4 +1,4 @@
-import { JwtAccessGuard } from 'src/modules/auth/application';
+import { JwtAccessGuard } from 'src/libs/guards/jwt-access.guard';
 import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { UserService } from '../../application';
 import { TransactionHistoryResponse } from 'src/modules/blockchain-eth/infrastructure/transaction-history-response.interface';

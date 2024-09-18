@@ -7,6 +7,7 @@ import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { JwtConfigService, RedisConfigService, configuration, validate, dataSourceOptions } from './config';
 import Redis from 'ioredis';
+import { JwtConfigModule } from './config/jwt/jwt-congig.module';
 
 @Global()
 @Module({
@@ -27,12 +28,11 @@ import Redis from 'ioredis';
         RedisModule.forRootAsync({
             useClass: RedisConfigService,
         }),
+        JwtConfigModule,
         UserModule,
         AuthModule,
     ],
     providers: [
-        JwtConfigService,
-        RedisConfigService,
         {
             provide: 'REDIS_CLIENT',
             useFactory: (configService: ConfigService) => {
@@ -49,6 +49,6 @@ import Redis from 'ioredis';
             inject: [ConfigService],
         },
     ],
-    exports: [JwtConfigService, RedisConfigService, 'REDIS_CLIENT', JwtModule],
+    exports: ['REDIS_CLIENT'],
 })
 export class AppModule {}

@@ -1,11 +1,10 @@
 import { Injectable, InternalServerErrorException, Inject } from '@nestjs/common';
-import { IJwtRepository } from '../../domain/interfaces/jwt-repository.interface';
 import { IJwtAccessToken, IJwtRefreshToken } from '../../domain/entities/jwt/jwt-entity.interface';
 import { JwtAccessTokenEntity, JwtRefreshTokenEntity } from '../../domain/entities/jwt/jwt.entity';
 import Redis from 'ioredis';
 
 @Injectable()
-export class JwtRepository implements IJwtRepository {
+export class JwtRepository  {
     constructor(@Inject('REDIS_CLIENT') private readonly redisClient: Redis) {}
 
     private async handleRedisOperation<T>(operation: () => Promise<T>): Promise<T | null> {
