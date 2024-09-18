@@ -11,7 +11,6 @@ export class EthereumService {
         const networkEndpoint = this.configService.get<string>('NETWORK_ENDPOINT');
         const contractAddress = '0xf117e28D8C9dEB52eDb3f10cFa2eA389d9873188';
         const contractAbi = [
-            // Add the relevant parts of the ABI here, especially events like Transfer
             "event Transfer(address indexed from, address indexed to, uint256 value)"
         ];
 

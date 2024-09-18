@@ -9,6 +9,7 @@ import {
   import { TransactionHistoryResponse } from '../interfaces/transaction-history-response.interface';
   import { UserRepository } from '../../infrastructure';
   import { UserOrmEntity } from '../../infrastructure';
+  import { UserDomain } from '../../domain/user.domain';
   
   @Injectable()
   export class UserService {
@@ -18,6 +19,7 @@ import {
     constructor(
       private readonly userRepository: UserRepository,
       private readonly configService: ConfigService,
+      private readonly userDomain: UserDomain,
     ) {
       const networkEndpoint = this.configService.get<string>('NETWORK_ENDPOINT');
       const etherscanApiKey = this.configService.get<string>('ETHERSCAN_API_KEY');
@@ -37,59 +39,22 @@ import {
       );
     }
   
-    async createUser(createUserDto: CreateUserDto): Promise<UserOrmEntity> {
-      try {
-        const existingUser =
-          await this.userRepository.findUserByWalletAddress(
-            createUserDto.walletAddress,
-          );
-  
-        if (existingUser) {
-          throw new ConflictException(
-            'User with this wallet address already exists',
-          );
-        }
-  
-        const newUser = new UserOrmEntity();
-        newUser.walletAddress = createUserDto.walletAddress.toLowerCase();
-  
-        await this.userRepository.save(newUser);
-        return newUser;
-      } catch (error) {
-        console.error('Error creating user:', error);
-        throw new InternalServerErrorException('Failed to create user');
-      }
+    async createUser(createUserDto: CreateUserDto) {
+      return this.userDomain.createUser(createUserDto);
     }
+
   
     async getAllUsers(): Promise<UserOrmEntity[]> {
-      try {
-        return await this.userRepository.getAllUsers();
-      } catch (error) {
-        console.error('Error retrieving all users:', error);
-        throw new InternalServerErrorException('Failed to retrieve users');
-      }
+      return this.userDomain.getAllUsers();
     }
   
-    async findUserByWalletAddress(
-      walletAddress: string,
-    ): Promise<UserOrmEntity | null> {
-      try {
-        return await this.userRepository.findUserByWalletAddress(walletAddress);
-      } catch (error) {
-        console.error('Error finding user by wallet address:', error);
-        throw new InternalServerErrorException(
-          'Failed to find user by wallet address',
-        );
-      }
+    async findUserByWalletAddress(walletAddress: string) {
+      return this.userDomain.findUserByWalletAddress(walletAddress);
+    
     }
-  
+
     async findUserByUserId(id: number): Promise<UserOrmEntity | null> {
-      try {
-        return await this.userRepository.findUserById(id);
-      } catch (error) {
-        console.error('Error finding user by ID:', error);
-        throw new InternalServerErrorException('Failed to find user by user ID');
-      }
+      return this.userDomain.findUserByUserId(id);
     }
   
     async getUserBalance(walletAddress: string): Promise<string> {
