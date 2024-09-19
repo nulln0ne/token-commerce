@@ -9,7 +9,7 @@ import { AuthModule } from '../auth/auth.module';
 
 
 @Module({
-    imports: [TypeOrmModule.forFeature([UserOrmEntity]),BlockchainEthModule, forwardRef(() => AuthModule)],
+    imports: [TypeOrmModule.forFeature([UserOrmEntity]),BlockchainEthModule],
     controllers: [UserController],
     providers: [UserService, UserRepository, UserDomain],
     exports: [UserService],
