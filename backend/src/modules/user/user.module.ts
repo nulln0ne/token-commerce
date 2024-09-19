@@ -5,7 +5,6 @@ import { UserController } from './presentation';
 import { UserService } from './application';
 import { UserDomain } from './domain/user.domain'; 
 import { BlockchainEthModule } from '../blockchain-eth/blockchain-eth.module';
-import { AuthModule } from '../auth/auth.module';  
 
 
 @Module({
