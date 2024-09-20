@@ -5,6 +5,7 @@ import { CreateUserDto } from '../application';
 
 @Injectable()
 export class UserDomain {
+    
     constructor(private readonly userRepository: UserRepository) {}
 
     async createUser(createUserDto: CreateUserDto): Promise<UserOrmEntity> {
@@ -38,6 +39,7 @@ export class UserDomain {
           );
         }
       }
+
 
       async findUserByUserId(id: number): Promise<UserOrmEntity | null> {
         try {

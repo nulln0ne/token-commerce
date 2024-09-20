@@ -1,13 +1,21 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
+import { Box } from '@mui/joy';
 
 const LoggedOutLayout: React.FC = () => {
     return (
-        <div>
-            <main className='Main__loggedOut'>
+        <Box
+            sx={{
+                height: '100vh',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+            }}
+        >
+            <main>
                 <Outlet />
             </main>
-        </div>
+        </Box>
     );
 };
 

@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RedisModuleOptions, RedisModuleOptionsFactory } from '@nestjs-modules/ioredis';
+
 import { Config } from '../configuration.type';
 
 @Injectable()
-export class RedisConfigService implements RedisModuleOptionsFactory { // RedisModuleOptionsFactory здесь правильно
+export class RedisConfigService implements RedisModuleOptionsFactory {
     constructor(private readonly configService: ConfigService<Config>) {}
 
     public createRedisModuleOptions(): RedisModuleOptions | Promise<RedisModuleOptions> {
