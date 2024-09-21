@@ -1,8 +1,7 @@
 import React, { Suspense } from 'react';
 import Page from '../../shared/ui/components/Page/Page';
 import Loading from '../../shared/ui/components/Loading/Loading';
-
-const PurchaseForm = React.lazy(() => import('../../features/purchase/ui/PurchaseForm/PurchaseForm'));
+import PurchaseForm from '../../widgets/PurchaseForm/PurchaseForm';
 
 const PurchasePage: React.FC = () => {
     return (

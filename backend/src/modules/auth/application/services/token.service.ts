@@ -14,7 +14,7 @@ export class TokenService {
     const jwtConfig = this.jwtConfigService.createJwtOptions();
     const ttl = Number(jwtConfig.signOptions.expiresIn);
     const accessToken = this.jwtService.sign(
-      { sub: id.toString() },
+      { sub: id.toString() }, // Convert id to string for JWT payload
       { expiresIn: ttl, secret: jwtConfig.secret },
     );
     return new JwtAccessTokenEntity(id, ttl, accessToken, new Date(), new Date());
@@ -24,7 +24,7 @@ export class TokenService {
     const refreshTokenConfig = this.jwtConfigService.getRefreshTokenConfig();
     const ttl = Number(refreshTokenConfig.signOptions.expiresIn);
     const refreshToken = this.jwtService.sign(
-      { sub: id.toString() }, 
+      { sub: id.toString() }, // Convert id to string for JWT payload
       { expiresIn: ttl, secret: refreshTokenConfig.secret },
     );
     return new JwtRefreshTokenEntity(id, ttl, refreshToken, new Date(), new Date());

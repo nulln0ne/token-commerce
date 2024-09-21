@@ -1,5 +1,5 @@
-import {Injectable,InternalServerErrorException,UnauthorizedException,ForbiddenException,} from '@nestjs/common';
-import { JwtRepository } from '../../infrastructure';
+import {Injectable,Inject,InternalServerErrorException,UnauthorizedException,ForbiddenException,} from '@nestjs/common';
+import { IJwtRepository } from '../../domain';
 import { UserService } from 'src/modules/user/application';
 import { CreateUserDto } from 'src/modules/user/application';
 import { TokenService } from './token.service';
@@ -11,15 +11,17 @@ export class AuthenticationService {
     private readonly tokenService: TokenService,
     private readonly signatureService: SignatureService,
     private readonly userService: UserService,
-    private readonly jwtRepository: JwtRepository,
+    @Inject('IJwtRepository')
+    private readonly jwtRepository: IJwtRepository,
   ) {}
 
-
   async authenticateUser(createUserDto: CreateUserDto, signature: string) {
-
     const { walletAddress } = createUserDto;
-    const isVerified = await this.signatureService.verifySignature(walletAddress,signature,);
-    
+
+    const isVerified = await this.signatureService.verifySignature(
+      walletAddress,
+      signature,
+    );
     if (!isVerified) {
       throw new UnauthorizedException('Signature verification failed');
     }

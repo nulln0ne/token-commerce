@@ -1,12 +1,12 @@
-import { Module, Global } from '@nestjs/common';
+import { Module, Global, InternalServerErrorException } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { RedisModule } from '@nestjs-modules/ioredis';
 import { JwtModule } from '@nestjs/jwt';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
-import { JwtConfigService, configuration, validate, dataSourceOptions } from './config';
-import { JwtConfigModule } from './config/jwt/jwt-config.module';
-import { RedisConfigModule } from './config/redis/redis-config.module';
+import { JwtConfigService, RedisConfigService, configuration, validate, dataSourceOptions } from './config';
+import Redis from 'ioredis';
 
 @Global()
 @Module({
@@ -24,11 +24,31 @@ import { RedisConfigModule } from './config/redis/redis-config.module';
             useClass: JwtConfigService,
             global: true,
         }),
-        JwtConfigModule,
+        RedisModule.forRootAsync({
+            useClass: RedisConfigService,
+        }),
         UserModule,
         AuthModule,
-        RedisConfigModule,
     ],
-
+    providers: [
+        JwtConfigService,
+        RedisConfigService,
+        {
+            provide: 'REDIS_CLIENT',
+            useFactory: (configService: ConfigService) => {
+                try {
+                    const { url } = configService.get('redis');
+                    if (!url) {
+                        throw new InternalServerErrorException('Redis URL is not configured.');
+                    }
+                    return new Redis(url);
+                } catch (error) {
+                    throw new InternalServerErrorException('Failed to create Redis client');
+                }
+            },
+            inject: [ConfigService],
+        },
+    ],
+    exports: [JwtConfigService, RedisConfigService, 'REDIS_CLIENT', JwtModule],
 })
 export class AppModule {}

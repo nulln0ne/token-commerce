@@ -1,8 +1,8 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '../../../features/auth/hooks/useAuth';
+import { useAuthStore } from '../../../shared/stores/authStore';
 
 const LoggedInRoute = () => {
-    const { isAuthenticated } = useAuth();
+    const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
     if (!isAuthenticated) {
         return <Navigate to="/" />;

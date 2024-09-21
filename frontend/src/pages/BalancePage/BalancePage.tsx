@@ -1,7 +1,7 @@
 import React from 'react';
 import { useBalance } from '../../features/balance/hooks/useBalance';
 import Page from '../../shared/ui/components/Page/Page';
-import BalanceTable from '../../features/balance/ui/BalanceTable/BalanceTable';
+import BalanceTable from '../../widgets/BalanceTable/BalanceTable';
 import { Typography } from '@mui/joy';
 
 const BalancePage: React.FC = () => {

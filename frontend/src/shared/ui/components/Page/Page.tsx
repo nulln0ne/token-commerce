@@ -1,6 +1,5 @@
 import React from 'react';
-import { Card, Typography } from '@mui/joy';
-import './Page.scss';
+import { Card, Typography, Box } from '@mui/joy';
 
 interface PageProps {
     title: string;
@@ -9,12 +8,26 @@ interface PageProps {
 
 const Page: React.FC<PageProps> = ({ title, children }) => {
     return (
-        <div className="Page">
-            <Card className="Page__card">
-                <Typography level="h2" className="Page__card-title">{title}</Typography>
+        <Box
+            sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}
+        >
+            <Card
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    width: '500px',
+                }}
+            >
+                <Typography level="h2" sx={{ marginBottom: '16px' }}>
+                    {title}
+                </Typography>
                 {children}
             </Card>
-        </div>
+        </Box>
     );
 };
 

@@ -1,6 +1,7 @@
 import { init } from '@web3-onboard/react';
 import injectedModule from '@web3-onboard/injected-wallets';
 import metamaskSDK from '@web3-onboard/metamask';
+import { SEPOLIA_RPC } from '../../config';
 
 interface EthereumSepolia {
     id: number;
@@ -13,7 +14,7 @@ const ethereumSepolia: EthereumSepolia = {
     id: 11155111,
     token: 'ETH',
     label: 'Sepolia',
-    rpcUrl: 'https://rpc.sepolia.org/',
+    rpcUrl: SEPOLIA_RPC,
 };
 
 const metamaskSDKWallet = metamaskSDK({

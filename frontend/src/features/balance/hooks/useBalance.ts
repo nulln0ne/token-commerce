@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
-import { useUserStore } from '../../../app/stores/userStore';
-import { getBalance } from '../api/getBalance';
+import { useEffect, useMemo, useState } from 'react';
 import logger from '../../../shared/lib/logger';
+import { BalanceService } from '../../../shared/services/balanceService';
+import { useUserStore } from '../../../shared/stores/userStore';
 
 export const useBalance = () => {
     const walletAddress = useUserStore((state) => state.walletAddress);
@@ -9,16 +9,18 @@ export const useBalance = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    const balanceService = useMemo(() => new BalanceService(), []);
+
     useEffect(() => {
         const fetchBalance = async () => {
             if (walletAddress) {
                 try {
                     setLoading(true);
-                    await getBalance(walletAddress);
+                    await balanceService.getBalance(walletAddress);
                     setError(null);
-                } catch (err) {
+                } catch {
                     setError('Failed to fetch balance.');
-                    logger.error(err);
+                    logger.error('Failed to fetch balance:', error);
                 } finally {
                     setLoading(false);
                 }
@@ -28,7 +30,7 @@ export const useBalance = () => {
         };
 
         fetchBalance();
-    }, [walletAddress]);
+    }, [walletAddress, balanceService, error]);
 
     return { balance, loading, error };
 };

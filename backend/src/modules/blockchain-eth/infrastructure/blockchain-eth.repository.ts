@@ -1,32 +1,29 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ethers } from 'ethers';
-import { blockchainConfig } from './blockchain-eth.config';
-import { Transaction, TransactionHistoryResponse } from './transaction-history-response.interface';  
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class BlockchainRepository {
   private readonly provider: ethers.providers.JsonRpcProvider;
-  private readonly tokenAddress: string;
-  private readonly contractAddress: string;
+  private readonly tokenAddress: string = '0x2C9BB4d690CE1DF2010A0A6300303B3fdb860B2A'; // Адрес токена
 
-  constructor() {
-    const networkEndpoint = blockchainConfig.networkEndpoint;
+  constructor(private readonly configService: ConfigService) {
+    const networkEndpoint = this.configService.get<string>('NETWORK_ENDPOINT');
     if (!networkEndpoint) {
       throw new InternalServerErrorException('Network endpoint not configured');
     }
     this.provider = new ethers.providers.JsonRpcProvider(networkEndpoint);
-    this.tokenAddress = blockchainConfig.tokenAddress;
-    this.contractAddress = blockchainConfig.contractAddress;
   }
 
   validateWalletAddress(walletAddress: string): void {
-    if (!ethers.utils.isAddress(walletAddress)) {
+    if (!/^0x[a-fA-F0-9]{40}$/.test(walletAddress)) {
       throw new InternalServerErrorException('Invalid wallet address format');
     }
   }
 
   async getBalance(walletAddress: string): Promise<string> {
     this.validateWalletAddress(walletAddress);
+
     try {
       const erc20Abi = [
         'function balanceOf(address owner) view returns (uint256)',
@@ -34,6 +31,7 @@ export class BlockchainRepository {
       ];
 
       const tokenContract = new ethers.Contract(this.tokenAddress, erc20Abi, this.provider);
+
       const [balance, decimals] = await Promise.all([
         tokenContract.balanceOf(walletAddress),
         tokenContract.decimals(),
@@ -47,19 +45,20 @@ export class BlockchainRepository {
     }
   }
 
-  async getTransactionHistory(walletAddress: string): Promise<TransactionHistoryResponse> {
+  async getTransactionHistory(walletAddress: string): Promise<any> {
     this.validateWalletAddress(walletAddress);
 
     try {
+      const contractAddress = '0xf117e28D8C9dEB52eDb3f10cFa2eA389d9873188';
       const abi = [
         'event Transfer(address indexed from, address indexed to, uint256 value)',
       ];
 
-      const contract = new ethers.Contract(this.contractAddress, abi, this.provider);
+      const contract = new ethers.Contract(contractAddress, abi, this.provider);
       const filter = contract.filters.Transfer(null, walletAddress);
       const events = await contract.queryFilter(filter, 0, 'latest');
 
-      const transactions: Transaction[] = await Promise.all(
+      const transactions = await Promise.all(
         events.map(async (tx) => {
           const block = await tx.getBlock();
           return {
@@ -82,6 +81,3 @@ export class BlockchainRepository {
     }
   }
 }
-
-
-  
