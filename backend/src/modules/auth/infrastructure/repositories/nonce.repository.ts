@@ -1,5 +1,5 @@
 import { Injectable, InternalServerErrorException, Inject } from '@nestjs/common';
-import { INonce } from '../../domain/entities/nonce/nonce-entity.interface';
+import { INonce } from '../entities/nonce/nonce-entity.interface';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
 

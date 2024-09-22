@@ -1,4 +1,10 @@
-import {Injectable,InternalServerErrorException,UnauthorizedException,ForbiddenException,} from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+  ForbiddenException,
+  Req,
+} from '@nestjs/common';
 import { JwtRepository } from '../../infrastructure';
 import { UserService } from 'src/modules/user/application';
 import { CreateUserDto } from 'src/modules/user/application';
@@ -15,11 +21,14 @@ export class AuthenticationService {
   ) {}
 
 
-  async authenticateUser(createUserDto: CreateUserDto, signature: string) {
 
+  async authenticateUser(createUserDto: CreateUserDto, signature: string) {
     const { walletAddress } = createUserDto;
-    const isVerified = await this.signatureService.verifySignature(walletAddress,signature,);
-    
+    const isVerified = await this.signatureService.verifySignature(
+      walletAddress,
+      signature,
+    );
+
     if (!isVerified) {
       throw new UnauthorizedException('Signature verification failed');
     }
@@ -29,9 +38,7 @@ export class AuthenticationService {
     if (!user) {
       user = await this.userService.createUser(createUserDto);
       if (!user || user.id === undefined || user.id === null) {
-        throw new InternalServerErrorException(
-          'User creation failed',
-        );
+        throw new InternalServerErrorException('User creation failed');
       }
     }
 
@@ -48,28 +55,23 @@ export class AuthenticationService {
     const accessTokenEntity = this.tokenService.generateAccessToken(id);
     const refreshTokenEntity = this.tokenService.generateRefreshToken(id);
 
-    await this.jwtRepository.saveAccessToken(accessTokenEntity);
     await this.jwtRepository.saveRefreshToken(refreshTokenEntity);
 
     return {
       accessToken: accessTokenEntity.accessToken,
       refreshToken: refreshTokenEntity.refreshToken,
+      accessTokenTtl: accessTokenEntity.ttl,
+      refreshTokenTtl: refreshTokenEntity.ttl,
     };
   }
 
   async logoutUser(id: number) {
-    await this.jwtRepository.removeAccessToken(id);
     await this.jwtRepository.removeRefreshToken(id);
   }
 
   async refreshTokens(refreshToken: string) {
     try {
-      const refreshTokenConfig = this.tokenService.getRefreshTokenConfig();
-      const decoded = await this.tokenService.validateToken(
-        refreshToken,
-        refreshTokenConfig.secret,
-      );
-
+      const decoded = await this.tokenService.validateRefreshToken(refreshToken);
       const id = parseInt(decoded.sub, 10);
 
       if (isNaN(id)) {
