@@ -75,7 +75,7 @@ export class AuthenticationService {
       const id = parseInt(decoded.sub, 10);
 
       if (isNaN(id)) {
-        throw new UnauthorizedException('Invalid token payload');
+        throw new UnauthorizedException('Invalid token payloa');
       }
 
       const storedRefreshToken = await this.jwtRepository.findRefreshTokenById(
