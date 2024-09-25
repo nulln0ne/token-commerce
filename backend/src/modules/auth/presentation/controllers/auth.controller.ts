@@ -10,7 +10,7 @@ import {
   } from '@nestjs/common';
   import { Response, Request } from 'express';
   import { AuthenticationService } from '../../application/services/authentication.service';
-  import { CreateUserDto } from 'src/modules/user/application/dtos/create-user.dto';
+  import { AuthUserDto } from '../dtos/auth.dto';
   import { JwtAccessGuard } from 'src/libs/guards/jwt-access.guard';
   import { NonceService } from '../../application/services/nonce.service';
   import { JwtPayload } from '../../infrastructure/entities/jwt/jwt-payload';
@@ -25,37 +25,24 @@ import {
   
     @Post()
     async authenticate(
-      @Body() createUserDto: CreateUserDto,
-      @Body('signature') signature: string,
+      @Body() authUserDto: AuthUserDto,
       @Res({ passthrough: true }) res: Response,
     ) {
       const tokens = await this.authService.authenticateUser(
-        createUserDto,
-        signature,
+        authUserDto
       );
 
       res.cookie('accessToken', tokens.accessToken, {
         httpOnly: true,
-        secure: false,
-        sameSite: 'lax',
-        maxAge: tokens.accessTokenTtl * 1000,
-        path: '/',
+        secure: true,
       });
   
       res.cookie('refreshToken', tokens.refreshToken, {
         httpOnly: true,
-        secure: false,
-        sameSite: 'lax',
-        maxAge: tokens.refreshTokenTtl * 1000,
-        path: '/',
+        secure: true,
       });
   
       return { success: true };
-    }
-    
-    @Get('get-cookie')
-    async getCookie(@Res({ passthrough: true }) res: Response) {
-        res.cookie('2', '1');
     }
   
     @Post('refresh')
@@ -70,18 +57,12 @@ import {
   
       res.cookie('accessToken', tokens.accessToken, {
         httpOnly: true,
-        secure: false,
-        sameSite: 'lax',
-        maxAge: tokens.accessTokenTtl * 1000,
-        path: '/',
+        secure: true,
       });
   
       res.cookie('refreshToken', tokens.refreshToken, {
         httpOnly: true,
-        secure: false,
-        sameSite: 'lax',
-        maxAge: tokens.refreshTokenTtl * 1000,
-        path: '/',
+        secure: true,
       });
   
       return { success: true };

@@ -1,6 +1,5 @@
   import { Injectable } from '@nestjs/common';
   import { CreateUserDto } from '../dtos/create-user.dto';
-  import { TransactionHistoryResponse } from 'src/modules/blockchain-eth';
   import { UserOrmEntity } from '../../infrastructure';
   import { UserDomain } from '../../domain/user.domain';
   import { BlockchainEthService } from 'src/modules/blockchain-eth/application/blockchain-eth.service';
@@ -32,7 +31,7 @@
       return this.blockchainEthService.getBalance(walletAddress);
     }
   
-    async getTransactionHistory(walletAddress: string): Promise<TransactionHistoryResponse> {
+    async getTransactionHistory(walletAddress: string): Promise<any> {
       return this.blockchainEthService.getTransactionHistory(walletAddress);
     }
   }

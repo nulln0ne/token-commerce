@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { JwtRepository } from '../../infrastructure';
 import { UserService } from 'src/modules/user/application';
-import { CreateUserDto } from 'src/modules/user/application';
+import { AuthUserDto } from '../../presentation/dtos/auth.dto';
 import { TokenService } from './token.service';
 import { SignatureService } from './signature.service';
 
@@ -22,8 +22,8 @@ export class AuthenticationService {
 
 
 
-  async authenticateUser(createUserDto: CreateUserDto, signature: string) {
-    const { walletAddress } = createUserDto;
+  async authenticateUser(authUserDto: AuthUserDto) {
+    const { walletAddress, signature } = authUserDto;
     const isVerified = await this.signatureService.verifySignature(
       walletAddress,
       signature,
@@ -36,7 +36,7 @@ export class AuthenticationService {
     let user = await this.userService.findUserByWalletAddress(walletAddress);
 
     if (!user) {
-      user = await this.userService.createUser(createUserDto);
+      user = await this.userService.createUser({ walletAddress });
       if (!user || user.id === undefined || user.id === null) {
         throw new InternalServerErrorException('User creation failed');
       }

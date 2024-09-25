@@ -1,4 +1,5 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, OneToMany, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { TransactionOrmEntity } from 'src/modules/blockchain-eth/infrastructure/orm-entities/transactions.orm-entity';   
 
 @Entity('users')
 export class UserOrmEntity {
@@ -10,4 +11,7 @@ export class UserOrmEntity {
 
     @CreateDateColumn()
     createdAt: Date;
+
+    @OneToMany(() => TransactionOrmEntity, (transaction) => transaction.user)
+    transactions: TransactionOrmEntity[];
 }

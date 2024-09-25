@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { BlockchainRepository } from '../infrastructure/blockchain-eth.repository';
+import { BlockchainRepository } from '../infrastructure/repositories/blockchain-eth.repository';
 
 @Injectable()
 export class BlockchainEthService {

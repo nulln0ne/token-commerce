@@ -1,7 +1,6 @@
 import { JwtAccessGuard } from 'src/libs/guards/jwt-access.guard';
 import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { UserService } from '../../application';
-import { TransactionHistoryResponse } from 'src/modules/blockchain-eth/infrastructure/transaction-history-response.interface';
 
 @Controller('users')
 export class UserController {
@@ -28,7 +27,7 @@ export class UserController {
 
     @UseGuards(JwtAccessGuard)
     @Get('transactions/:walletAddress')
-    async getTransactionHistory(@Param('walletAddress') walletAddress: string): Promise<TransactionHistoryResponse> {
+    async getTransactionHistory(@Param('walletAddress') walletAddress: string): Promise<any> {
         return this.userService.getTransactionHistory(walletAddress);
     }
 }
