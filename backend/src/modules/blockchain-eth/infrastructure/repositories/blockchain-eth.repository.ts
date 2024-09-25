@@ -4,6 +4,7 @@ import { blockchainConfig } from '../blockchain-eth.config';
 import { TransactionRepository } from './transaction.repository';
 import { UserRepository } from 'src/modules/user/infrastructure';
 import { TransactionOrmEntity } from '../orm-entities/transactions.orm-entity';
+import { TransactionResponseDto } from '../dtos/transaction-response.dto';
 
 @Injectable()
 export class BlockchainRepository {
@@ -52,7 +53,10 @@ export class BlockchainRepository {
     }
   }
 
-  async getTransactionHistory(walletAddress: string): Promise<{ walletAddress: string; transactions: TransactionOrmEntity[] }> {
+  async getTransactionHistory(walletAddress: string): Promise<{ 
+    walletAddress: string; 
+    transactions: TransactionResponseDto[]; 
+  }> {
     this.validateWalletAddress(walletAddress);
   
     try {
@@ -67,19 +71,18 @@ export class BlockchainRepository {
   
       const sortedTransactions = user.transactions.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
   
+      const transactionsDto: TransactionResponseDto[] = sortedTransactions.map(transaction => ({
+        hash: transaction.hash,
+        amountSent: transaction.amountSent,
+        amountReceived: transaction.amountReceived,
+        fees: transaction.fees,
+        status: transaction.status,
+        timestamp: transaction.timestamp,
+      }));
+  
       return {
         walletAddress,
-        transactions: sortedTransactions.map(transaction => ({
-          id: transaction.id,
-          hash: transaction.hash,
-          from: transaction.from,
-          to: transaction.to,
-          amountSent: transaction.amountSent,
-          amountReceived: transaction.amountReceived,
-          fees: transaction.fees,
-          status: transaction.status,
-          timestamp: transaction.timestamp,
-        })),
+        transactions: transactionsDto,
       };
     } catch (error) {
       console.error('Error getting transaction history from DB:', error);
@@ -87,9 +90,6 @@ export class BlockchainRepository {
     }
   }
   
-  
-  
-
   listenForTransfers(): void {
     try {
       const abi = [
