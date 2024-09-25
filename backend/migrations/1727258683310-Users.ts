@@ -2,13 +2,12 @@ import { MigrationInterface, QueryRunner, Table, TableForeignKey } from "typeorm
 
 export class UsersAndTransactions1727258683310 implements MigrationInterface {
 
-    
-
     public async up(queryRunner: QueryRunner): Promise<void> {
         const userTableExists = await queryRunner.hasTable('users');
         if (userTableExists) {
-            await queryRunner.dropTable('users', true); 
+            await queryRunner.dropTable('users', true);
         }
+
         await queryRunner.createTable(
             new Table({
                 name: 'users',
@@ -18,20 +17,20 @@ export class UsersAndTransactions1727258683310 implements MigrationInterface {
                         type: 'int',
                         isPrimary: true,
                         isGenerated: true,
-                        generationStrategy: 'increment'
+                        generationStrategy: 'increment',
                     },
                     {
                         name: 'walletAddress',
                         type: 'varchar',
-                        isUnique: true
+                        isUnique: true,
                     },
                     {
                         name: 'createdAt',
                         type: 'timestamp',
-                        default: 'now()'
-                    }
-                ]
-            })
+                        default: 'now()',
+                    },
+                ],
+            }),
         );
 
         await queryRunner.createTable(
@@ -43,38 +42,58 @@ export class UsersAndTransactions1727258683310 implements MigrationInterface {
                         type: 'int',
                         isPrimary: true,
                         isGenerated: true,
-                        generationStrategy: 'increment'
+                        generationStrategy: 'increment',
                     },
                     {
                         name: 'hash',
                         type: 'varchar',
-                        isUnique: true
+                        isUnique: true,
                     },
                     {
                         name: 'from',
-                        type: 'varchar'
+                        type: 'varchar',
                     },
                     {
                         name: 'to',
-                        type: 'varchar'
+                        type: 'varchar',
                     },
                     {
-                        name: 'value',
+                        name: 'amountSent',
                         type: 'decimal',
                         precision: 40,
-                        scale: 18
+                        scale: 18,
+                    },
+                    {
+                        name: 'amountReceived',
+                        type: 'decimal',
+                        precision: 40,
+                        scale: 18,
+                    },
+                    {
+                        name: 'fees',
+                        type: 'decimal',
+                        precision: 40,
+                        scale: 18,
+                        isNullable: true,
+                    },
+                    {
+                        name: 'status',
+                        type: 'enum',
+                        enum: ['Success', 'Failed'],
+                        default: `'Success'`,
                     },
                     {
                         name: 'timestamp',
-                        type: 'bigint'
+                        type: 'timestamp',  
+                        default: 'now()',
                     },
                     {
                         name: 'userId',
                         type: 'int',
-                        isNullable: true
-                    }
-                ]
-            })
+                        isNullable: true,
+                    },
+                ],
+            }),
         );
 
         await queryRunner.createForeignKey(
@@ -83,18 +102,19 @@ export class UsersAndTransactions1727258683310 implements MigrationInterface {
                 columnNames: ['userId'],
                 referencedColumnNames: ['id'],
                 referencedTableName: 'users',
-                onDelete: 'CASCADE'
-            })
+                onDelete: 'CASCADE',
+            }),
         );
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
         const table = await queryRunner.getTable('transactions');
-        const foreignKey = table.foreignKeys.find(fk => fk.columnNames.indexOf('userId') !== -1);
-        await queryRunner.dropForeignKey('transactions', foreignKey);
+        const foreignKey = table.foreignKeys.find((fk) => fk.columnNames.indexOf('userId') !== -1);
+        if (foreignKey) {
+            await queryRunner.dropForeignKey('transactions', foreignKey);
+        }
 
         await queryRunner.dropTable('transactions');
         await queryRunner.dropTable('users');
     }
-
 }

@@ -65,17 +65,28 @@ export class BlockchainRepository {
         };
       }
   
-      const sortedTransactions = user.transactions.sort((a, b) => b.timestamp - a.timestamp);
+      const sortedTransactions = user.transactions.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
   
       return {
         walletAddress,
-        transactions: sortedTransactions,
+        transactions: sortedTransactions.map(transaction => ({
+          id: transaction.id,
+          hash: transaction.hash,
+          from: transaction.from,
+          to: transaction.to,
+          amountSent: transaction.amountSent,
+          amountReceived: transaction.amountReceived,
+          fees: transaction.fees,
+          status: transaction.status,
+          timestamp: transaction.timestamp,
+        })),
       };
     } catch (error) {
       console.error('Error getting transaction history from DB:', error);
       throw new InternalServerErrorException('Failed to get transaction history from the database');
     }
   }
+  
   
   
 
@@ -88,25 +99,39 @@ export class BlockchainRepository {
       const contract = new ethers.Contract(this.contractAddress, abi, this.provider);
   
       contract.on('Transfer', async (from, to, value, event) => {
-        const block = await event.getBlock();
+        try {
+          const block = await event.getBlock();
+          const transactionHash = event.transactionHash;
+          const transactionReceipt = await this.provider.getTransactionReceipt(transactionHash);
+          const transaction = await this.provider.getTransaction(transactionHash);
   
-        const user = await this.userRepository.findUserByWalletAddress(from) ||
-                     await this.userRepository.findUserByWalletAddress(to);
+          const fees = ethers.utils.formatUnits(transactionReceipt.gasUsed.mul(transaction.gasPrice), 'ether');
   
-        if (user) {
-          const transactionData = new TransactionOrmEntity();
-          transactionData.hash = event.transactionHash;
-          transactionData.from = from;
-          transactionData.to = to;
-          transactionData.value = ethers.utils.formatUnits(value.toString(), 'ether');
-          transactionData.timestamp = block.timestamp;
-          transactionData.user = user;  
+          const status = transactionReceipt.status === 1 ? 'Success' : 'Failed';
   
-          await this.transactionRepository.saveTransaction(transactionData);
+          const user = await this.userRepository.findUserByWalletAddress(from) ||
+                       await this.userRepository.findUserByWalletAddress(to);
   
-          console.log('Transaction saved:', transactionData);
-        } else {
-          console.log('Transaction is not related to any users:', event.transactionHash);
+          if (user) {
+            const transactionData = new TransactionOrmEntity();
+            transactionData.hash = transactionHash;
+            transactionData.from = from;
+            transactionData.to = to;
+            transactionData.amountSent = ethers.utils.formatUnits(value.toString(), 'ether');
+            transactionData.amountReceived = ethers.utils.formatUnits(value.toString(), 'ether');
+            transactionData.fees = fees;
+            transactionData.status = status;
+            transactionData.timestamp = new Date(block.timestamp * 1000); 
+            transactionData.user = user;
+  
+            await this.transactionRepository.saveTransaction(transactionData);
+  
+            console.log('Transaction saved:', transactionData);
+          } else {
+            console.log('Transaction is not related to any users:', transactionHash);
+          }
+        } catch (error) {
+          console.error('Error processing transfer event:', error);
         }
       });
     } catch (error) {
@@ -114,4 +139,5 @@ export class BlockchainRepository {
       throw new InternalServerErrorException('Failed to listen for transfer events');
     }
   }
+  
 }
